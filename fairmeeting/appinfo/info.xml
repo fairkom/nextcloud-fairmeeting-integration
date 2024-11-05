@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>fairmeeting</id>
+    <name>fairmeeting video conferencing</name>
+    <summary>fairmeeting video conferencing integration</summary>
+    <description>This app integrates the Jitsi based fairmeeting video conferencing service into Nextcloud. fairmeeting is hosted in the EU, thus fully GDPR compliant. We have set fairmeeting.net as the default Jitsi server, as meet.jit.si requires additional login or a token and is limited to 5 minutes in embedded conferences since 2023. 
+Features:
+- 🎬 Full-featured online video conferences in nextcloud
+- 🔗 Sharable conference room links
+- 🔎 Integrated into global Nextcloud search
+- ✅ Audio and video test before joining a conference
+- 💯 Supports hundreds of users
+- 🖼 Customizable background images
+- 👏 Emoji reactions and animated GIF interactions
+- 👩🏼‍🏫 Organiser is moderator and can assign moderation rights
+- ➕ Option to open meetings **in a new browser tab** instead of embedded
+
+Video conferencing is based on the Jitsi framework, see their [documentation](https://github.com/nextcloud/jitsi). fairmeeting is hosted by [fairkom]((https://fairkom.eu/en) on a scalable kubernetes cluster, see their [info page](https://fairkom.eu/en/fairmeeting) and [FAQs](https://git.fairkom.net/hosting/fairmeeting/-/wikis/home). The app is based on the Jitsi app by Michael Weimann. 
+    </description>
+    <version>0.21.0</version>
+    <licence>agpl</licence>
+    <author mail="support@fairkom.eu" homepage="https://fairkom.eu/">fairkom</author>
+    <namespace>fairmeeting</namespace>
+    <category>social</category>
+    <bugs>https://git.fairkom.net/hosting/nextcloud-fairmeeting-integration/-/issues</bugs>
+    <website>https://fairkom.eu/en/fairmeeting</website>
+    <screenshot>https://git.fairkom.net/hosting/nextcloud-fairmeeting-integration/-/tree/master/screenshots/join.png</screenshot>
+    <screenshot>https://git.fairkom.net/hosting/nextcloud-fairmeeting-integration/-/tree/master/screenshots/rooms.png</screenshot>
+
+	<settings>
+		<admin>OCA\fairmeeting\Settings\AdminSettings</admin>
+		<admin-section>OCA\fairmeeting\Settings\AdminSection</admin-section>
+	</settings>
+
+    <dependencies>
+        <nextcloud min-version="25" max-version="31"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>fairmeeting</name>
+            <route>fairmeeting.page.index</route>
+        </navigation>
+    </navigations>
+</info>

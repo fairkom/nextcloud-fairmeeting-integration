@@ -1,0 +1,28 @@
+.app-content {
+	background-color: var(--color-main-background);
+	border-radius: var(--body-container-radius);
+	padding: 5px;
+}
+
+.app-body {
+	max-height: 100%;
+	overflow: scroll;
+}
+
+.fairmeeting-info-container {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	margin-top: 25vh;
+	width: 100%;
+}
+
+.fairmeeting-info-title {
+	font-size: 32px;
+	margin-bottom: 32px;
+	text-align: center;
+}
+
+.fairmeeting-info-text {
+	text-align: center;
+}
