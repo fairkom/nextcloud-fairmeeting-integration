@@ -6,31 +6,33 @@
 		<div class="tol-check-right">
 			<div class="tol-check-title-row">
 				<div class="tol-check-title">
-					{{ t('jitsi', 'Audio output') }}
+					{{ t("fairmeeting", "Audio output") }}
 				</div>
 				<a
 					v-if="$root.helpLink && status !== 'pending' && status !== 'ok'"
 					class="tol-check-title-help"
-					:href="$root.helpLink + '#speaker'">{{ t('jitsi', 'Help') }}</a>
+					:href="$root.helpLink + '#speaker'"
+					>{{ t("fairmeeting", "Help") }}</a
+				>
 			</div>
 			<div>
 				<select
 					v-if="showSpeakerSelect"
 					v-model="selectedSpeakerId"
 					class="tol-check-select"
-					:disabled="speakers.length === 0">
+					:disabled="speakers.length === 0"
+				>
 					<option
 						v-for="device in speakers"
 						:key="device.deviceId"
-						:value="device.deviceId">
+						:value="device.deviceId"
+					>
 						{{ device.label }}
 					</option>
 				</select>
-				<div
-					class="tol-play-button button secondary"
-					@click="playTestSound">
+				<div class="tol-play-button button secondary" @click="playTestSound">
 					<PlayIcon class="tol-play-button__icon" />
-					{{ t('jitsi', 'Play test sound') }}
+					{{ t("fairmeeting", "Play test sound") }}
 				</div>
 			</div>
 		</div>
@@ -38,13 +40,12 @@
 </template>
 
 <script>
-
-import CheckStatusIcon from './CheckStatusIcon'
-import { generateUrl } from '@nextcloud/router'
-import PlayIcon from 'vue-material-design-icons/Play.vue'
+import CheckStatusIcon from "./CheckStatusIcon";
+import { generateUrl } from "@nextcloud/router";
+import PlayIcon from "vue-material-design-icons/Play.vue";
 
 export default {
-	name: 'SpeakerTest',
+	name: "SpeakerTest",
 	components: {
 		CheckStatusIcon,
 		PlayIcon,
@@ -56,81 +57,90 @@ export default {
 	},
 	data() {
 		return {
-			status: 'pending',
+			status: "pending",
 			selectedSpeaker: undefined,
 			stream: undefined,
 			audioContext: undefined,
-		}
+		};
 	},
 	computed: {
 		showSpeakerSelect() {
-			return this.browser.getBrowserName(true) !== 'firefox'
-				&& this.browser.getBrowserName(true) !== 'safari'
+			return (
+				this.browser.getBrowserName(true) !== "firefox" &&
+				this.browser.getBrowserName(true) !== "safari"
+			);
 		},
 		selectedSpeakerId: {
 			get() {
-				return this.selectedSpeaker ? this.selectedSpeaker.deviceId : undefined
+				return this.selectedSpeaker ? this.selectedSpeaker.deviceId : undefined;
 			},
 			async set(id) {
-				this.selectedSpeaker = this.speakers.find(ele => ele.deviceId === id)
-				this.$emit('speaker-selected', this.selectedSpeaker)
-				localStorage.setItem('tol-preferred-speaker', this.selectedSpeaker.deviceId)
+				this.selectedSpeaker = this.speakers.find((ele) => ele.deviceId === id);
+				this.$emit("speaker-selected", this.selectedSpeaker);
+				localStorage.setItem(
+					"tol-preferred-speaker",
+					this.selectedSpeaker.deviceId
+				);
 			},
 		},
 		playSrc() {
-			return this.link('/svg/core/actions/play?color=000000')
+			return this.link("/svg/core/actions/play?color=000000");
 		},
 	},
 	mounted() {
-		if (this.browser.getBrowserName(true) === 'firefox') {
-			this.status = 'sound'
-			return
+		if (this.browser.getBrowserName(true) === "firefox") {
+			this.status = "sound";
+			return;
 		}
 
 		if (this.permissionDenied) {
-			this.status = 'error'
-			return
+			this.status = "error";
+			return;
 		}
 
-		const preferredSpeakerId = localStorage.getItem('tol-preferred-speaker')
+		const preferredSpeakerId = localStorage.getItem("tol-preferred-speaker");
 
 		if (preferredSpeakerId) {
-			const speaker = this.speakers.find(ele => ele.deviceId === preferredSpeakerId)
+			const speaker = this.speakers.find(
+				(ele) => ele.deviceId === preferredSpeakerId
+			);
 			if (speaker) {
-				this.selectedSpeaker = speaker
-				this.status = 'ok'
-				return
+				this.selectedSpeaker = speaker;
+				this.status = "ok";
+				return;
 			}
 		}
 
 		if (this.speakers && this.speakers.length > 0) {
-			const defaultSpeaker = this.speakers.find(ele => ele.label.includes('default'))
+			const defaultSpeaker = this.speakers.find((ele) =>
+				ele.label.includes("default")
+			);
 			if (defaultSpeaker) {
-				this.selectedSpeakerId = defaultSpeaker.deviceId
+				this.selectedSpeakerId = defaultSpeaker.deviceId;
 			} else {
-				this.selectedSpeakerId = this.speakers[0].deviceId
+				this.selectedSpeakerId = this.speakers[0].deviceId;
 			}
-			this.status = 'ok'
+			this.status = "ok";
 		}
 	},
 	methods: {
 		playTestSound() {
-			const testFileUrl = generateUrl('/apps/jitsi/assets/sounds/test.wav')
-			const audio = new Audio(testFileUrl)
+			const testFileUrl = generateUrl(
+				"/apps/fairmeeting/assets/sounds/test.wav"
+			);
+			const audio = new Audio(testFileUrl);
 
-			if (this.browser.getBrowserName(true) !== 'firefox') {
-				audio.setSinkId(this.selectedSpeaker.deviceId)
+			if (this.browser.getBrowserName(true) !== "firefox") {
+				audio.setSinkId(this.selectedSpeaker.deviceId);
 			}
 
-			audio.play()
+			audio.play();
 		},
 	},
-}
-
+};
 </script>
 
 <style scoped>
-
 @import "../css/check.css";
 
 .tol-play-button {
@@ -142,5 +152,4 @@ export default {
 .tol-play-button__icon {
 	margin-right: 8px;
 }
-
 </style>

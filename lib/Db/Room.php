@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Db;
+namespace OCA\fairmeeting\Db;
 
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;

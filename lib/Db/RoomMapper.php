@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Db;
+namespace OCA\fairmeeting\Db;
 
 use OCP\AppFramework\Db\QBMapper;
 use OCP\IDBConnection;
@@ -15,7 +15,7 @@ use function reset;
  */
 class RoomMapper extends QBMapper {
 	public function __construct(IDBConnection $db) {
-		parent::__construct($db, 'jitsi_rooms', Room::class);
+		parent::__construct($db, 'fairmeeting_rooms', Room::class);
 	}
 
 	/**

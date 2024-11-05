@@ -6,29 +6,31 @@
 		<div class="tol-check-right">
 			<div class="tol-check-title-row">
 				<div class="tol-check-title">
-					{{ t('jitsi', 'Microphone') }}
+					{{ t("fairmeeting", "Microphone") }}
 				</div>
 				<a
 					v-if="$root.helpLink && status !== 'pending' && status !== 'ok'"
 					class="tol-check-title-help"
-					:href="$root.helpLink + '#microphone'">{{ t('jitsi', 'Help') }}</a>
+					:href="$root.helpLink + '#microphone'"
+					>{{ t("fairmeeting", "Help") }}</a
+				>
 			</div>
 			<div>
 				<select
 					v-if="!loading"
 					v-model="selectedMicrophoneId"
 					class="tol-check-select"
-					:disabled="microphones.length === 0">
+					:disabled="microphones.length === 0"
+				>
 					<option
 						v-for="device in microphones"
 						:key="device.deviceId"
-						:value="device.deviceId">
+						:value="device.deviceId"
+					>
 						{{ device.label }}
 					</option>
 				</select>
-				<div
-					ref="meter"
-					class="meter">
+				<div ref="meter" class="meter">
 					<VolumeHighIcon class="meter__icon" />
 				</div>
 			</div>
@@ -37,12 +39,11 @@
 </template>
 
 <script>
-
-import CheckStatusIcon from './CheckStatusIcon'
-import VolumeHighIcon from 'vue-material-design-icons/VolumeHigh.vue'
+import CheckStatusIcon from "./CheckStatusIcon";
+import VolumeHighIcon from "vue-material-design-icons/VolumeHigh.vue";
 
 export default {
-	name: 'MicTest',
+	name: "MicTest",
 	components: {
 		CheckStatusIcon,
 		VolumeHighIcon,
@@ -53,151 +54,168 @@ export default {
 	},
 	data() {
 		return {
-			status: 'pending',
+			status: "pending",
 			selectedMicrophone: undefined,
 			audioContext: undefined,
 			stream: undefined,
 			loading: true,
 			audioProcessTimeout: undefined,
-		}
+		};
 	},
 	computed: {
 		selectedMicrophoneId: {
 			get() {
-				return this.selectedMicrophone ? this.selectedMicrophone.deviceId : undefined
+				return this.selectedMicrophone
+					? this.selectedMicrophone.deviceId
+					: undefined;
 			},
 			async set(microphoneId) {
-				this.selectedMicrophone = this.microphones.find(mic => mic.deviceId === microphoneId)
-				this.$emit('microphone-selected', this.selectedMicrophone)
-				localStorage.setItem('tol-preferred-microphone', this.selectedMicrophone.deviceId)
+				this.selectedMicrophone = this.microphones.find(
+					(mic) => mic.deviceId === microphoneId
+				);
+				this.$emit("microphone-selected", this.selectedMicrophone);
+				localStorage.setItem(
+					"tol-preferred-microphone",
+					this.selectedMicrophone.deviceId
+				);
 
-				await this.startPreview()
+				await this.startPreview();
 			},
 		},
 	},
 	created() {
-		this.$root.$on('stop-streams', async () => {
-			await this.stop()
-			this.$root.$emit('mic-stopped')
-		})
+		this.$root.$on("stop-streams", async () => {
+			await this.stop();
+			this.$root.$emit("mic-stopped");
+		});
 
-		this.$root.$on('resume-preview', () => {
-			this.startPreview()
-		})
+		this.$root.$on("resume-preview", () => {
+			this.startPreview();
+		});
 	},
 	mounted() {
-		if (this.permissionDenied || !this.microphones || this.microphones.length === 0) {
-			this.status = 'error'
-			return
+		if (
+			this.permissionDenied ||
+			!this.microphones ||
+			this.microphones.length === 0
+		) {
+			this.status = "error";
+			return;
 		}
 
-		const preferredMicrophoneId = localStorage.getItem('tol-preferred-microphone')
+		const preferredMicrophoneId = localStorage.getItem(
+			"tol-preferred-microphone"
+		);
 
 		if (preferredMicrophoneId) {
-			const mic = this.microphones.find(ele => ele.deviceId === preferredMicrophoneId)
+			const mic = this.microphones.find(
+				(ele) => ele.deviceId === preferredMicrophoneId
+			);
 			if (mic) {
-				this.selectedMicrophoneId = mic.deviceId
-				this.status = 'sound'
-				this.loading = false
-				return
+				this.selectedMicrophoneId = mic.deviceId;
+				this.status = "sound";
+				this.loading = false;
+				return;
 			}
 		}
 
-		const defaultMicrophone = this.microphones.find(ele => ele.label.includes('default'))
+		const defaultMicrophone = this.microphones.find((ele) =>
+			ele.label.includes("default")
+		);
 		if (defaultMicrophone) {
-			this.selectedMicrophoneId = defaultMicrophone.deviceId
+			this.selectedMicrophoneId = defaultMicrophone.deviceId;
 		} else {
-			this.selectedMicrophoneId = this.microphones[0].deviceId
+			this.selectedMicrophoneId = this.microphones[0].deviceId;
 		}
-		this.status = 'sound'
-		this.loading = false
+		this.status = "sound";
+		this.loading = false;
 	},
 	methods: {
 		async startPreview() {
-			await this.stop()
+			await this.stop();
 
 			try {
 				this.stream = await navigator.mediaDevices.getUserMedia({
 					audio: { deviceId: this.selectedMicrophone.deviceId },
-				})
+				});
 			} catch (err) {
 				// console.log(err)
 
-				if (err.name === 'NotAllowedError') {
-					this.status = 'error'
-					return
+				if (err.name === "NotAllowedError") {
+					this.status = "error";
+					return;
 				}
 
-				this.status = 'error'
-				return
+				this.status = "error";
+				return;
 			}
 
-			this.audioContext = new AudioContext()
-			const mediaStreamSource = this.audioContext.createMediaStreamSource(this.stream)
-			const processor = this.audioContext.createScriptProcessor(2048, 1, 1)
+			this.audioContext = new AudioContext();
+			const mediaStreamSource = this.audioContext.createMediaStreamSource(
+				this.stream
+			);
+			const processor = this.audioContext.createScriptProcessor(2048, 1, 1);
 
 			// mediaStreamSource.connect(this.audioContext.destination)
-			mediaStreamSource.connect(processor)
-			processor.connect(this.audioContext.destination)
+			mediaStreamSource.connect(processor);
+			processor.connect(this.audioContext.destination);
 
-			processor.onaudioprocess = this.debouncedOnAudioProcess
+			processor.onaudioprocess = this.debouncedOnAudioProcess;
 
-			this.$root.$emit('tol-refresh-devices')
+			this.$root.$emit("tol-refresh-devices");
 		},
 		debouncedOnAudioProcess(event) {
 			if (this.audioProcessTimeout) {
-				return
+				return;
 			}
 
-			this.onAudioProcess(event)
+			this.onAudioProcess(event);
 
 			this.audioProcessTimeout = setTimeout(() => {
-				this.audioProcessTimeout = undefined
-			}, 50)
+				this.audioProcessTimeout = undefined;
+			}, 50);
 		},
 		onAudioProcess(event) {
-			const inputData = event.inputBuffer.getChannelData(0)
-			const inputDataLength = inputData.length
-			let total = 0
+			const inputData = event.inputBuffer.getChannelData(0);
+			const inputDataLength = inputData.length;
+			let total = 0;
 
 			for (let i = 0; i < inputDataLength; i++) {
-				total += Math.abs(inputData[i++])
+				total += Math.abs(inputData[i++]);
 			}
 
-			const rms = Math.sqrt(total / inputDataLength)
-			const audioLevel = Math.round(rms * 100)
+			const rms = Math.sqrt(total / inputDataLength);
+			const audioLevel = Math.round(rms * 100);
 
 			if (this.$refs.meter && this.$refs.meter.classList && this.$refs.meter) {
 				if (audioLevel > 10) {
-					this.$refs.meter.classList.add('meter--active')
+					this.$refs.meter.classList.add("meter--active");
 				} else {
-					this.$refs.meter.classList.remove('meter--active')
+					this.$refs.meter.classList.remove("meter--active");
 				}
 			}
 
-			if (audioLevel > 10 && this.status !== 'ok') {
-				this.status = 'ok'
+			if (audioLevel > 10 && this.status !== "ok") {
+				this.status = "ok";
 			}
 		},
 		async stop() {
 			if (this.audioContext) {
-				await this.audioContext.close()
-				this.audioContext = undefined
+				await this.audioContext.close();
+				this.audioContext = undefined;
 			}
 
 			if (this.stream) {
 				this.stream.getTracks().forEach((track) => {
-					track.stop()
-				})
+					track.stop();
+				});
 			}
 		},
 	},
-}
-
+};
 </script>
 
 <style scoped>
-
 @import "../css/check.css";
 
 .meter {
@@ -211,5 +229,4 @@ export default {
 .meter--active {
 	background-color: #059669;
 }
-
 </style>

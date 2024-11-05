@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Controller;
+namespace OCA\fairmeeting\Controller;
 
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Controller;
+namespace OCA\fairmeeting\Controller;
 
 use Browser;
-use OCA\jitsi\Config\Config;
+use OCA\fairmeeting\Config\Config;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
@@ -44,7 +44,7 @@ abstract class AbstractController extends Controller {
 		$renderAs = $loggedIn ? 'user' : 'public';
 
 		return new TemplateResponse(
-			'jitsi',
+			'fairmeeting',
 			'outdated_browser',
 			['browserName' => $browserInfo['name'],],
 			$renderAs

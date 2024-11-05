@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Migration;
+namespace OCA\fairmeeting\Migration;
 
 use Closure;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -26,7 +26,7 @@ class Version10000Date20201018172823 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		$table = $schema->createTable('jitsi_rooms');
+		$table = $schema->createTable('fairmeeting_rooms');
 		$table->addColumn(
 			'id',
 			'integer',
@@ -61,8 +61,8 @@ class Version10000Date20201018172823 extends SimpleMigrationStep {
 		);
 
 		$table->setPrimaryKey(['id']);
-		$table->addIndex(['creator_id'], 'jitsi_creator_id_index');
-		$table->addIndex(['public_id'], 'jitsi_public_id_index');
+		$table->addIndex(['creator_id'], 'fairmeeting_creator_id_index');
+		$table->addIndex(['public_id'], 'fairmeeting_public_id_index');
 		return $schema;
 	}
 }

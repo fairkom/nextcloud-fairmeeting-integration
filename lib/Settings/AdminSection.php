@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Settings;
+namespace OCA\fairmeeting\Settings;
 
 use OCP\IURLGenerator;
 use OCP\Settings\IIconSection;
@@ -16,15 +16,15 @@ class AdminSection implements IIconSection {
 	}
 
 	public function getIcon(): string {
-		return $this->urlgen->imagePath('jitsi', 'settings.svg');
+		return $this->urlgen->imagePath('fairmeeting', 'settings.svg');
 	}
 
 	public function getID(): string {
-		return 'jitsi';
+		return 'fairmeeting';
 	}
 
 	public function getName(): string {
-		return 'Jitsi';
+		return 'fairmeeting';
 	}
 
 	public function getPriority(): int {

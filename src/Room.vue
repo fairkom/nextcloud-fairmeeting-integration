@@ -12,53 +12,16 @@
 				:style="{ 'padding-top': user ? '16px' : '64px' }"
 			>
 				<div class="room__sub-title">
-					{{ t("jitsi", "Conference") }}
+					{{ t("fairmeeting", "Conference") }}
 				</div>
 				<h1 class="room__title">
 					{{ room.name }}
 				</h1>
-				<div class="room__join-browser-section">
-					<div v-if="conferenceDone" class="room__done-info">
-						{{ t("jitsi", "Conference left") }}
-					</div>
-					<div
-						v-if="!systemOk"
-						class="room__system-test-summary room__system-test-summary--warning"
-					>
-						<div class="room__system-test-summary__title__row">
-							<CloseThickIcon class="room__system-test-summary__icon" />
-							<div class="room__system-test-summary__title">
-								{{ t("jitsi", "Problems detected") }}
-							</div>
-						</div>
-						<div class="room__system-test-summary__text">
-							<ul class="tol-ul-icons">
-								<li v-if="browserStatus === 'warning'">
-									<b>{{ t("jitsi", "Your browser is non-optimal:") }}</b
-									><br />
-									<span
-										v-html="
-											t(
-												'jitsi',
-												'Audio and video quality could be poor. It is recommended to use a recent <b>Firefox/Chrome/Chromium</b> version.'
-											)
-										"
-									/>
-								</li>
-								<li v-if="browserStatus === 'error'">
-									{{ t("jitsi", "Browser not supported") }}
-								</li>
-							</ul>
-						</div>
-						<div class="room__system-test-summary__actions">
-							<a class="button secondary" href="#system-test">
-								{{ t("jitsi", "Show system check") }}
-							</a>
-						</div>
-					</div>
+
+				<div v-if="openInNewTab === '1'" class="room__join-browser-section">
 					<div v-if="!user" class="room__username">
 						<label class="room__username-label">
-							{{ t("jitsi", "Your name:") }} </label
+							{{ t("fairmeeting", "Your name:") }}</label
 						><br />
 						<input
 							v-model="userName"
@@ -69,128 +32,189 @@
 					</div>
 					<button
 						class="primary room__join-button--browser"
-						:disabled="!systemTestDone || !ready || error || joining"
+						:disabled="!ready || error || joining"
 						@click="joinBrowser"
 					>
-						{{ t("jitsi", "Click here to join") }}
+						{{ t("fairmeeting", "Join Meeting") }}
 					</button>
-
-					<div class="room__options">
-						<label class="room__option">
-							<input
-								v-model="startMuted"
-								class="room__option__checkbox"
-								type="checkbox"
-							/>
-							{{ t("jitsi", "Start muted") }}
-						</label>
-						<label class="room__option">
-							<input
-								v-model="startCameraOff"
-								class="room__option__checkbox"
-								type="checkbox"
-							/>
-							{{ t("jitsi", "Start with camera off") }}
-						</label>
-					</div>
 				</div>
 
-				<SystemTest
-					id="system-test"
-					class="tol-system-test-section"
-					@microphone-selected="onMicrophoneSelected"
-					@camera-selected="onCameraSelected"
-					@speaker-selected="onSpeakerSelected"
-				/>
-
-				<template v-if="displayJoinUsingTheJitsiApp">
-					<div class="room__join-app-buttons-section">
-						<div class="room__join-app-button-section">
-							<button
-								class="secondary room__join-button--app"
-								:disabled="!systemTestDone || !ready || error || joining"
-								@click="joinDesktopApp"
-							>
-								{{ t("jitsi", "Join with desktop app") }}
-							</button>
+				<div v-else>
+					<div class="room__join-browser-section">
+						<div v-if="conferenceDone" class="room__done-info">
+							{{ t("fairmeeting", "Conference left") }}
 						</div>
-						<div class="room__join-app-button-section">
-							<button
-								class="secondary room__join-button--app"
-								:disabled="!systemTestDone || !ready || error || joining"
-								@click="joinMobileApp"
-							>
-								{{ t("jitsi", "Join with mobile app") }}
-							</button>
-						</div>
-					</div>
-
-					<div
-						class="room__join-app-toggle"
-						@click="showJoinApp = !showJoinApp"
-					>
-						{{ t("jitsi", "App button not working?") }}
-						<ChevronUpIcon
-							class="room__join-app-toggle-icon"
-							:class="{ 'room__join-app-toggle-icon--up': showJoinApp }"
-						/>
-					</div>
-					<div v-if="showJoinApp" class="room__join-app-section">
-						<ol class="room__app-instructions">
-							<li class="room__app-instructions-item">
-								<a
-									target="_blank"
-									href="https://github.com/jitsi/jitsi-meet-electron#installation"
-								>
-									{{ t("jitsi", "Download the desktop app here ↗") }}
+						<div
+							v-if="!systemOk"
+							class="room__system-test-summary room__system-test-summary--warning"
+						>
+							<div class="room__system-test-summary__title__row">
+								<CloseThickIcon class="room__system-test-summary__icon" />
+								<div class="room__system-test-summary__title">
+									{{ t("fairmeeting", "Problems detected") }}
+								</div>
+							</div>
+							<div class="room__system-test-summary__text">
+								<ul class="tol-ul-icons">
+									<li v-if="browserStatus === 'warning'">
+										<b>{{ t("fairmeeting", "Your browser is non-optimal:") }}</b
+										><br />
+										<span
+											v-html="
+												t(
+													'fairmeeting',
+													'Audio and video quality could be poor. It is recommended to use a recent <b>Firefox/Chrome/Chromium</b> version.'
+												)
+											"
+										/>
+									</li>
+									<li v-if="browserStatus === 'error'">
+										{{ t("fairmeeting", "Browser not supported") }}
+									</li>
+								</ul>
+							</div>
+							<div class="room__system-test-summary__actions">
+								<a class="button secondary" href="#system-test">
+									{{ t("fairmeeting", "Show system check") }}
 								</a>
-								<br />
-								{{
-									t(
-										"jitsi",
-										"The mobile app is available via the app store of your choice."
-									)
-								}}
-								<br />
-								{{
-									t(
-										"jitsi",
-										"After successful installation try the button again."
-									)
-								}}
-							</li>
-							<li
-								class="room__app-instructions-item"
-								v-html="
-									t(
-										'jitsi',
-										'Still not working? Copy the link below and paste it into the input field on the Jitsi App start screen.'
-									)
-								"
-							/>
-						</ol>
-						<div class="room__join-link-container">
+							</div>
+						</div>
+						<div v-if="!user" class="room__username">
+							<label class="room__username-label">
+								{{ t("fairmeeting", "Your name:") }}</label
+							><br />
 							<input
-								class="room__join-link-input"
-								:value="joinAppLink"
-								readonly
+								v-model="userName"
+								class="room__username-input"
+								type="text"
+								maxlength="20"
 							/>
-							<Actions ref="copyLinkActions">
-								<ActionLink
-									:href="joinAppLink"
-									:icon="
-										copied && copySuccess
-											? 'icon-checkmark-color'
-											: 'icon-clippy'
-									"
-									@click.stop.prevent="copyLink"
-								>
-									{{ clipboardTooltip }}
-								</ActionLink>
-							</Actions>
+						</div>
+						<button
+							class="primary room__join-button--browser"
+							:disabled="!systemTestDone || !ready || error || joining"
+							@click="joinBrowser"
+						>
+							{{ t("fairmeeting", "Click here to join") }}
+						</button>
+
+						<div class="room__options">
+							<label class="room__option">
+								<input
+									v-model="startMuted"
+									class="room__option__checkbox"
+									type="checkbox"
+								/>
+								{{ t("fairmeeting", "Start muted") }}
+							</label>
+							<label class="room__option">
+								<input
+									v-model="startCameraOff"
+									class="room__option__checkbox"
+									type="checkbox"
+								/>
+								{{ t("fairmeeting", "Start with camera off") }}
+							</label>
 						</div>
 					</div>
-				</template>
+
+					<SystemTest
+						id="system-test"
+						class="tol-system-test-section"
+						@microphone-selected="onMicrophoneSelected"
+						@camera-selected="onCameraSelected"
+						@speaker-selected="onSpeakerSelected"
+					/>
+
+					<template v-if="displayJoinUsingThefairmeetingApp">
+						<div class="room__join-app-buttons-section">
+							<div class="room__join-app-button-section">
+								<button
+									class="secondary room__join-button--app"
+									:disabled="!systemTestDone || !ready || error || joining"
+									@click="joinDesktopApp"
+								>
+									{{ t("fairmeeting", "Join with desktop app") }}
+								</button>
+							</div>
+							<div class="room__join-app-button-section">
+								<button
+									class="secondary room__join-button--app"
+									:disabled="!systemTestDone || !ready || error || joining"
+									@click="joinMobileApp"
+								>
+									{{ t("fairmeeting", "Join with mobile app") }}
+								</button>
+							</div>
+						</div>
+
+						<div
+							class="room__join-app-toggle"
+							@click="showJoinApp = !showJoinApp"
+						>
+							{{ t("fairmeeting", "App button not working?") }}
+							<ChevronUpIcon
+								class="room__join-app-toggle-icon"
+								:class="{ 'room__join-app-toggle-icon--up': showJoinApp }"
+							/>
+						</div>
+						<div v-if="showJoinApp" class="room__join-app-section">
+							<ol class="room__app-instructions">
+								<li class="room__app-instructions-item">
+									<a
+										target="_blank"
+										href="https://github.com/fairmeeting/fairmeeting-meet-electron#installation"
+									>
+										{{ t("fairmeeting", "Download the desktop app here ↗") }}
+									</a>
+									<br />
+									{{
+										t(
+											"fairmeeting",
+											"The mobile app is available via the app store of your choice."
+										)
+									}}
+									<br />
+									{{
+										t(
+											"fairmeeting",
+											"After successful installation try the button again."
+										)
+									}}
+								</li>
+								<li
+									class="room__app-instructions-item"
+									v-html="
+										t(
+											'fairmeeting',
+											'Still not working? Copy the link below and paste it into the input field on the fairmeeting App start screen.'
+										)
+									"
+								/>
+							</ol>
+							<div class="room__join-link-container">
+								<input
+									class="room__join-link-input"
+									:value="joinAppLink"
+									readonly
+								/>
+								<Actions ref="copyLinkActions">
+									<ActionLink
+										:href="joinAppLink"
+										:icon="
+											copied && copySuccess
+												? 'icon-checkmark-color'
+												: 'icon-clippy'
+										"
+										@click.stop.prevent="copyLink"
+									>
+										{{ clipboardTooltip }}
+									</ActionLink>
+								</Actions>
+							</div>
+						</div>
+					</template>
+				</div>
 			</div>
 			<div
 				ref="conferenceContainer"
@@ -257,7 +281,7 @@ export default {
 			selectedSpeaker: null,
 			permissionDenied: false,
 			browserStatus: null,
-			displayJoinUsingTheJitsiApp: true,
+			displayJoinUsingThefairmeetingApp: true,
 			displaySharingInviteLink: true,
 			displayAllSharingInvites: true,
 			ready: false,
@@ -274,19 +298,22 @@ export default {
 				window.location.protocol +
 				"//" +
 				window.location.host +
-				generateUrl("/apps/jitsi")
+				generateUrl("/apps/fairmeeting")
 			);
 		},
 		clipboardTooltip() {
 			if (this.copied) {
 				return this.copySuccess
-					? t("jjitsi", this.t("jitsi", "Link copied"))
+					? t("jfairmeeting", this.t("fairmeeting", "Link copied"))
 					: t(
-							"jjitsi",
-							this.t("jitsi", "Cannot copy, please copy the link manually")
+							"jfairmeeting",
+							this.t(
+								"fairmeeting",
+								"Cannot copy, please copy the link manually"
+							)
 					  );
 			}
-			return t("jjitsi", this.t("jitsi", "Copy to clipboard"));
+			return t("jfairmeeting", this.t("fairmeeting", "Copy to clipboard"));
 		},
 		systemOk() {
 			if (this.browserStatus && this.browserStatus !== "ok") {
@@ -301,7 +328,7 @@ export default {
 			},
 			set(startMuted) {
 				this._startMuted = startMuted;
-				localStorage.setItem("jitsi.startMuted", startMuted);
+				localStorage.setItem("fairmeeting.startMuted", startMuted);
 			},
 		},
 		startCameraOff: {
@@ -310,7 +337,7 @@ export default {
 			},
 			set(startCameraOff) {
 				this._startCameraOff = startCameraOff;
-				localStorage.setItem("jitsi.startCameraOff", startCameraOff);
+				localStorage.setItem("fairmeeting.startCameraOff", startCameraOff);
 			},
 		},
 		displayName() {
@@ -325,46 +352,54 @@ export default {
 			this.blinkBasedBrowser = true;
 		}
 
-		this.startMuted = localStorage.getItem("jitsi.startMuted") === "true";
+		this.startMuted = localStorage.getItem("fairmeeting.startMuted") === "true";
 		this.startCameraOff =
-			localStorage.getItem("jitsi.startCameraOff") === "true";
+			localStorage.getItem("fairmeeting.startCameraOff") === "true";
 
-		this.$root.$on("jitsi.device_permission_denied", () => {
-			this.permissionDenied = true;
-		});
+		if (this.openInNewTab !== "1") {
+			this.$root.$on("fairmeeting.device_permission_denied", () => {
+				this.permissionDenied = true;
+			});
 
-		this.$root.$on("jitsi.system_test_done", () => {
-			this.systemTestDone = true;
-		});
+			this.$root.$on("fairmeeting.system_test_done", () => {
+				this.systemTestDone = true;
+			});
 
-		this.$root.$on("tol-browser-status", (status) => {
-			this.browserStatus = status;
-		});
+			this.$root.$on("tol-browser-status", (status) => {
+				this.browserStatus = status;
+			});
+		}
 
-		const jitsiEle = document.getElementById("jitsi");
-		console.log("jitsiEle.dataset", jitsiEle.dataset);
-		this.serverUrl = jitsiEle.dataset.serverUrl;
-		this.$root.helpLink = jitsiEle.dataset.helpLink;
-		this.displayJoinUsingTheJitsiApp =
-			jitsiEle.dataset.displayJoinUsingTheJitsiApp === "true";
+		const fairmeetingEle = document.getElementById("fairmeeting");
+		this.serverUrl = fairmeetingEle.dataset.serverUrl;
+		this.$root.helpLink = fairmeetingEle.dataset.helpLink;
+		this.displayJoinUsingThefairmeetingApp =
+			fairmeetingEle.dataset.displayJoinUsingThefairmeetingApp === "true";
 		this.displaySharingInviteLink =
-			jitsiEle.dataset.displaySharingInviteLink === "true";
+			fairmeetingEle.dataset.displaySharingInviteLink === "true";
 		this.displayAllSharingInvites =
-			jitsiEle.dataset.displayAllSharingInvites === "true";
-
+			fairmeetingEle.dataset.displayAllSharingInvites === "true";
 		const url = new URL(this.serverUrl);
 		this.serverHost = url.host;
-
-		const userResponse = await axios.get(generateUrl("/apps/jitsi/api/user"));
+		this.openInNewTab =
+			fairmeetingEle.dataset.openInNewTab === "true" ? "1" : "0";
+		this.hasManualJwtToken =
+			fairmeetingEle.dataset.hasManualJwtToken === "true";
+		this.jwtToken = this.hasManualJwtToken
+			? fairmeetingEle.dataset.jwtToken
+			: "";
+		const userResponse = await axios.get(
+			generateUrl("/apps/fairmeeting/api/user")
+		);
 		this.user = userResponse.data.user;
 
 		if (!this.user) {
-			this.userName = localStorage.getItem("jitsi.userName");
+			this.userName = localStorage.getItem("fairmeeting.userName");
 		}
 
 		try {
 			const roomResponse = await axios.get(
-				generateUrl(`/apps/jitsi/api/rooms/${this.extractRoomId()}`)
+				generateUrl(`/apps/fairmeeting/api/rooms/${this.extractRoomId()}`)
 			);
 			this.room = roomResponse.data;
 		} catch (e) {
@@ -379,13 +414,16 @@ export default {
 		this.joinAppLink = `${this.serverUrl}${this.room.publicId}`;
 		this.joinDesktopAppLink = this.joinAppLink.replace(
 			/^http[s]*/,
-			"jitsi-meet"
+			"fairmeeting-meet"
 		);
 
 		const token = await this.issueToken();
 		if (token !== null) {
 			this.joinDesktopAppLink += `?jwt=${token}`;
 			this.joinAppLink += `?jwt=${token}`;
+		}
+		if (this.openInNewTab === "1") {
+			this.systemTestDone = true;
 		}
 
 		this.ready = true;
@@ -425,40 +463,109 @@ export default {
 		},
 		async joinDesktopApp() {
 			// We use '_self' to trigger an app launch (the default '_blank' just opens
-			//   Jitsi in a new browser tab on some browsers).
+			// Jitsi in a new browser tab on some browsers).
 			window.open(this.joinDesktopAppLink, "_self");
 		},
 		async joinMobileApp() {
 			window.open(this.joinAppLink, "_self");
+		},
+		async buildMeetingUrl() {
+			let url = `${this.serverUrl}${this.room.name}`;
+			const params = new URLSearchParams();
+
+			const token = await this.issueToken();
+			if (token !== null) {
+				params.append("jwt", token);
+			}
+
+			if (this._startMuted) {
+				params.append("config.startWithAudioMuted", "true");
+			}
+
+			if (this._startCameraOff) {
+				params.append("config.startWithVideoMuted", "true");
+			}
+
+			params.append("userInfo.displayName", this.displayName);
+
+			params.append("config.prejoinPageEnabled", "false");
+
+			params.append("config.disableDeepLinking", "true");
+
+			if (this.displayAllSharingInvites) {
+				params.append(
+					"interfaceConfig.SHARING_FEATURES",
+					"email,url,dial-in,embed"
+				);
+			} else if (this.displaySharingInviteLink) {
+				params.append("interfaceConfig.SHARING_FEATURES", "email");
+			} else {
+				params.append("interfaceConfig.SHARING_FEATURES", "");
+			}
+
+			params.append(
+				"interfaceConfig.HIDE_INVITE_MORE_HEADER",
+				this.displaySharingInviteLink ? "false" : "true"
+			);
+			params.append("interfaceConfig.MOBILE_APP_PROMO", "false");
+
+			// For new tab mode, we don't need to set these device parameters
+			if (this.openInNewTab !== "1") {
+				if (this.selectedCamera) {
+					params.append("devices.videoInput", this.selectedCamera.label);
+				}
+
+				if (this.selectedMicrophone) {
+					params.append("devices.audioInput", this.selectedMicrophone.label);
+				}
+
+				if (this.selectedSpeaker) {
+					params.append("devices.audioOutput", this.selectedSpeaker.label);
+				}
+			}
+
+			const paramsString = params.toString();
+			if (paramsString) {
+				url += `?${paramsString}`;
+			}
+
+			return url;
 		},
 		async joinBrowser() {
 			if (this.joining) {
 				return;
 			}
 
-			document.getElementById("header").style.display = "none";
-
 			this.joining = true;
 
 			if (!this.user && this.userName) {
-				localStorage.setItem("jitsi.userName", this.userName);
+				localStorage.setItem("fairmeeting.userName", this.userName);
 			}
+
+			if (this.openInNewTab === "1") {
+				const url = await this.buildMeetingUrl();
+				window.open(url, "_blank");
+				this.joining = false;
+				return;
+			}
+
+			document.getElementById("header").style.display = "none";
 
 			await this.stopStreams();
 
 			const token = await this.issueToken();
 
-			//set HIDE_INVITE_MORE_HEADER and SHARING_FEATURE
-			var features = []; //show nothing
+			// fairmeeting Specific: set HIDE_INVITE_MORE_HEADER and SHARING_FEATURE
+			var features = []; // show nothing
 			var inviteMoreHeader = false;
 
 			if (this.displaySharingInviteLink) {
 				inviteMoreHeader = true;
-				features.push("email"); //shows also nothing
+				features.push("email"); // shows also nothing
 			}
 
 			if (this.displayAllSharingInvites) {
-				features = ["email", "url", "dial-in", "embed"]; //show all link
+				features = ["email", "url", "dial-in", "embed"]; // show all link
 			}
 
 			const options = {
@@ -482,9 +589,10 @@ export default {
 			}
 
 			const configOverwrite = {
+				subject: this.room.name,
+				enableClosePage: false,
 				disableDeepLinking: true,
 				prejoinPageEnabled: false,
-				"prejoinConfig.enabled": false,
 				prejoinConfig: {
 					enabled: false,
 				},
@@ -524,10 +632,10 @@ export default {
 					if (frameUrl === null) {
 						frameUrl = frame.src;
 
-						frame.src = generateUrl("/apps/jitsi/blank");
+						frame.src = generateUrl("/apps/fairmeeting/blank");
 						setTimeout(() => {
 							// eslint-disable-next-line
-							console.log("[jitsi] reloading frame");
+							console.log("[fairmeeting] reloading frame");
 							frame.src = frameUrl;
 						}, 1000);
 					}
@@ -574,11 +682,14 @@ export default {
 			});
 		},
 		async issueToken() {
+			if (this.hasManualJwtToken && this.jwtToken) {
+				return this.jwtToken;
+			}
 			const data = {
 				displayName: this.user ? this.user.displayName : this.userName,
 			};
 			const url = generateUrl(
-				`/apps/jitsi/api/rooms/${this.room.publicId}/tokens`
+				`/apps/fairmeeting/api/rooms/${this.room.publicId}/tokens`
 			);
 			try {
 				const response = await axios.post(url, data);
@@ -630,12 +741,12 @@ export default {
 	width: 250px;
 }
 
-.room__join-button--browser {
-	display: block;
-	font-size: 16px;
-	margin: 0 auto 32px;
-	padding: 16px 32px;
-	width: 250px;
+.room__join-browser-section {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 48px;
+	width: 100%;
 }
 
 .room__join-button--app {

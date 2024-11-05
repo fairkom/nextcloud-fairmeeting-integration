@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\jitsi\Search;
+namespace OCA\fairmeeting\Search;
 
-use OCA\jitsi\AppInfo\Application;
-use OCA\jitsi\Db\Room;
-use OCA\jitsi\Db\RoomMapper;
+use OCA\fairmeeting\AppInfo\Application;
+use OCA\fairmeeting\Db\Room;
+use OCA\fairmeeting\Db\RoomMapper;
 use OCA\Theming\ThemingDefaults;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -89,7 +89,7 @@ class Provider implements IProvider {
 	public function search(IUser $user, ISearchQuery $query): SearchResult {
 		$rooms = $this->retrieveRooms($query);
 		$iconUrl = $this->urlGenerator->getAbsoluteURL(
-			'/index.php/svg/jitsi/app?color=' . substr(
+			'/index.php/svg/fairmeeting/app?color=' . substr(
 				$this->themingDefaults->getColorPrimary(),
 				1
 			)

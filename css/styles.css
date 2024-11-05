@@ -9,7 +9,7 @@
 	overflow: scroll;
 }
 
-.jitsi-info-container {
+.fairmeeting-info-container {
 	align-items: center;
 	display: flex;
 	flex-direction: column;
@@ -17,12 +17,12 @@
 	width: 100%;
 }
 
-.jitsi-info-title {
+.fairmeeting-info-title {
 	font-size: 32px;
 	margin-bottom: 32px;
 	text-align: center;
 }
 
-.jitsi-info-text {
+.fairmeeting-info-text {
 	text-align: center;
 }

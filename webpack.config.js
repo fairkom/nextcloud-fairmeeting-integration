@@ -1,36 +1,34 @@
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
-const path = require('path')
+const VueLoaderPlugin = require("vue-loader/lib/plugin");
+const path = require("path");
 
 module.exports = {
 	entry: {
-		admin: './src/admin.js',
-		index: './src/index.js',
-		room: './src/room.js',
+		admin: "./src/admin.js",
+		index: "./src/index.js",
+		room: "./src/room.js",
 	},
 	output: {
-		path: path.resolve('./js'),
+		path: path.resolve("./js"),
 	},
 	module: {
 		rules: [
 			{
 				test: /\.vue$/,
-				loader: 'vue-loader',
+				loader: "vue-loader",
 			},
 			{
 				test: /\.js$/,
-				loader: 'babel-loader',
+				loader: "babel-loader",
 				options: {
-					presets: [
-						['@babel/preset-env']
-					]
-				}
+					presets: [["@babel/preset-env"]],
+				},
 			},
 			{
 				test: /\.css$/,
 				use: [
-					'vue-style-loader',
+					"vue-style-loader",
 					{
-						loader: 'css-loader',
+						loader: "css-loader",
 						options: {
 							url: false,
 							esModule: false,
@@ -38,15 +36,17 @@ module.exports = {
 					},
 				],
 			},
+			{
+				// Add this rule to handle image files
+				test: /\.(png|jpe?g|gif|svg)$/i,
+				type: "asset/resource", // For Webpack 5
+				// If using Webpack 4 or earlier, use:
+				// use: 'file-loader',
+			},
 		],
 	},
-	plugins: [
-		new VueLoaderPlugin(),
-	],
+	plugins: [new VueLoaderPlugin()],
 	resolve: {
-		extensions: [
-			'.js',
-			'.vue',
-		],
+		extensions: [".js", ".vue"],
 	},
-}
+};

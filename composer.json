@@ -1,28 +1,27 @@
 {
-    "name": "fairkom/nextcloud-fairmeeting-integration",
-    "description": "Nextcloud fairmeeting Integration",
-    "type": "project",
-    "license": "AGPL-3.0-or-later",
-    "authors": [
-        {
-            "name": "Michael Weimann",
-            "name": "Philipp Monz"
-        }
-    ],
-    "require": {
-        "php": "^7.4 || ^8.0",
-        "adhocore/jwt": "^1.1",
-        "cbschuld/browser.php": "^1.9",
-        "ramsey/uuid": "^4.1"
-    },
-    "require-dev": {
-        "phpstan/phpstan": "^1.4.3",
-        "friendsofphp/php-cs-fixer": "^3.8",
-        "nextcloud/coding-standard": "^1.0"
-    },
-    "config": {
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": false
-        }
-    }
+	"name": "fairkom/nextcloud-fairmeeting",
+	"description": "Nextcloud fairmeeting Integration",
+	"type": "project",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Michael Weimann"
+		}
+	],
+	"require": {
+		"php": "^7.4 || ^8.0",
+		"adhocore/jwt": "^1.1",
+		"cbschuld/browser.php": "^1.9",
+		"ramsey/uuid": "^4.1"
+	},
+	"require-dev": {
+		"phpstan/phpstan": "^1.4.3",
+		"friendsofphp/php-cs-fixer": "^3.8",
+		"nextcloud/coding-standard": "^1.0"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": false
+		}
+	}
 }
