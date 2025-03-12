@@ -17,12 +17,12 @@ class Application extends App implements IBootstrap {
 	public function __construct() {
 		parent::__construct(self::APP_ID);
     
-        $policy = new ContentSecurityPolicy();
-        $policy->addAllowedFrameDomain('https://fairmeeting.net');
-        $policy->addAllowedFrameDomain('https://www.paypal.com');
-        $policy->addAllowedFrameDomain('https://payment-links.mollie.com');
-		$policy->addAllowedFrameDomain('https://www.mollie.com');
-        \OC::$server->getContentSecurityPolicyManager()->addDefaultPolicy($policy);
+        // $policy = new ContentSecurityPolicy();
+        // $policy->addAllowedFrameDomain('https://fairmeeting.net');
+        // $policy->addAllowedFrameDomain('https://www.paypal.com');
+        // $policy->addAllowedFrameDomain('https://payment-links.mollie.com');
+		// $policy->addAllowedFrameDomain('https://www.mollie.com');
+        // \OC::$server->getContentSecurityPolicyManager()->addDefaultPolicy($policy);
 	}
 
 	public function register(IRegistrationContext $context): void {
