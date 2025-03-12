@@ -1,7 +1,5 @@
 <?php
-
 declare(strict_types=1);
-
 namespace OCA\fairmeeting\AppInfo;
 
 use OCA\fairmeeting\Config\Config;
@@ -10,6 +8,7 @@ use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\AppFramework\Http\ContentSecurityPolicy;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'fairmeeting';
@@ -17,6 +16,13 @@ class Application extends App implements IBootstrap {
 
 	public function __construct() {
 		parent::__construct(self::APP_ID);
+    
+        $policy = new ContentSecurityPolicy();
+        $policy->addAllowedFrameDomain('https://fairmeeting.net');
+        $policy->addAllowedFrameDomain('https://www.paypal.com');
+        $policy->addAllowedFrameDomain('https://payment-links.mollie.com');
+		$policy->addAllowedFrameDomain('https://www.mollie.com');
+        \OC::$server->getContentSecurityPolicyManager()->addDefaultPolicy($policy);
 	}
 
 	public function register(IRegistrationContext $context): void {
