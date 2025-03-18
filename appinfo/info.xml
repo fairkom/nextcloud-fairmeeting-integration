@@ -5,20 +5,20 @@
     <name>fairmeeting video conferencing</name>
     <summary>fairmeeting video conferencing integration</summary>
     <description>This app integrates the Jitsi based fairmeeting video conferencing service into Nextcloud. fairmeeting is hosted in the EU, thus fully GDPR compliant. We have set fairmeeting.net as the default Jitsi server, as meet.jit.si requires additional login or a token and is limited to 5 minutes in embedded conferences since 2023. 
-
 Features:
-- 🎥 Full featured online conferences in Nextcloud 
+- 🎬 Full-featured online video conferences in nextcloud
 - 🔗 Sharable conference room links
-- 🔎 Shows conference rooms in the global search
+- 🔎 Integrated into global Nextcloud search
 - ✅ Audio and video test before joining a conference
-- 💯 up to hundreds of users
-- 🖼 background image
-- 👏 interactions with emojis and animated gifs among users
-- 👩🏼‍🏫 organiser is moderator, who can assign moderation rights to others
+- 💯 Supports hundreds of users
+- 🖼 Customizable background images
+- 👏 Emoji reactions and animated GIF interactions
+- 👩🏼‍🏫 Organiser is moderator and can assign moderation rights
+- ➕ Option to open meetings **in a new browser tab** instead of embedded
 
 Video conferencing is based on the Jitsi framework, see their [documentation](https://github.com/nextcloud/jitsi). fairmeeting is hosted by [fairkom]((https://fairkom.eu/en) on a scalable kubernetes cluster, see their [info page](https://fairkom.eu/en/fairmeeting) and [FAQs](https://git.fairkom.net/hosting/fairmeeting/-/wikis/home). The app is based on the Jitsi app by Michael Weimann. 
     </description>
-    <version>0.19.0</version>
+    <version>0.20.0</version>
     <licence>agpl</licence>
     <author mail="support@fairkom.eu" homepage="https://fairkom.eu/">fairkom</author>
     <namespace>fairmeeting</namespace>

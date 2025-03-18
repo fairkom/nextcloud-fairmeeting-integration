@@ -1,64 +1,111 @@
 # fairmeeting integration for nextcloud
 
-This app integrates the fairmeeting video conferencing service into Nextcloud. fairmeeting is based on Jitsi but hosted in the EU, thus fully GDPR compliant. We have set fairmeeting.net as the default Jitsi server, as meet.jit.si requires additional login or a token and is limited to 5 minutes in embedded conferences since 2023.
+Integrate the **fairmeeting** video conferencing service seamlessly into your Nextcloud!  
+**fairmeeting** is based on Jitsi, hosted in the EU, and fully **GDPR compliant**.
 
-## Features
+We set **[fairmeeting.net](https://fairmeeting.net)** as the default server. Unlike `meet.jit.si`, it requires no additional login/token and avoids the 5-minute limit on embedded conferences (introduced in 2023).
 
-- 🎥 Full featured online conferences in Nextcloud
+---
+
+## ✨ Features
+
+- 🎬 Full-featured online video conferences in nextcloud
 - 🔗 Sharable conference room links
-- 🔎 Shows conference rooms in the global search
-- ✅ Audio and video test before joining a conference
-- 💯 up to hundreds of users
-- 🖼 background image
-- 👏 interactions with emojis and animated gifs among users
-- 👩🏼‍🏫 organiser is moderator, who can assign moderation rights to others
+- 🔎 Integrated into global Nextcloud search
+- ✅ Audio & video test before joining a conference
+- 💯 Supports hundreds of users
+- 🖼 Customizable background images
+- 👏 Emoji reactions & animated GIF interactions
+- 👩🏼‍🏫 Organiser is moderator and can assign moderation rights
+- ➕ Option to open meetings **in a new browser tab** instead of embedded
+- 🔒 Flexible JWT Authentication:
+  - **Enter JWT Token directly** (pre-generated, no need to share secrets)
+  - **Or provide JWT_APP_SECRET** to auto-generate tokens
 
-## Sources & FAQs
+---
 
-- app was forked from https://github.com/nextcloud/jitsi (great work, we have improved some issues)
-- code on github: https://github.com/fairkom/nextcloud-fairmeeting-integration
-- code on gitlab: https://git.fairkom.net/hosting/fairkom/nextcloud_fairmeeting
-- optimized for: https://www.fairkom.eu/en/fairmeeting (with desktop apps)
-- fairmeeting faqs: https://git.fairkom.net/hosting/fairmeeting/-/wikis/home
+## 📚 Sources & FAQs
 
-## Usage of fairmeeting conferencing servers
+- Forked & improved from: [nextcloud/jitsi](https://github.com/nextcloud/jitsi) (thanks to their great work!)
+- Source code:
+  - [GitHub](https://github.com/fairkom/nextcloud-fairmeeting-integration)
+  - [GitLab](https://git.fairkom.net/hosting/fairkom/nextcloud_fairmeeting)
+- Optimized for: [fairmeeting by fairkom](https://www.fairkom.eu/en/fairmeeting) (including desktop apps)
+- FAQs: [fairmeeting wiki](https://git.fairkom.net/hosting/fairmeeting/-/wikis/home)
 
-The default server is [fairmeeting.net](https://fairmeeting.net). It runs on a scalable kubernetes cloud infrastructure and is managed by [fairkom](https://fairkom.eu).
+---
 
-Fair Use = private occasional usage. Please consider a [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=N8PYR9YWQHVE8&source=url) to cover their server costs.
+## 🌍 Usage of fairmeeting Servers
 
-If you use fairmeeting on a regular basis or for commercial purposes, you need to [order a pro plan](https://shop.fairkom.net/paketevergleich/).
+**Default server:** [fairmeeting.net](https://fairmeeting.net)  
+Managed by [fairkom](https://fairkom.eu) and running on scalable Kubernetes infrastructure.
 
-## Setup with your own Jitsi server
+- **Fair Use:** Private, occasional use  
+  ➔ Please consider a [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=N8PYR9YWQHVE8&source=url) to support server costs.
+- **Commercial/Regular Use:**  
+  ➔ Please [order a pro plan](https://shop.fairkom.net/paketevergleich/).
 
-You also can run this up with a dedicated Jitsi instance. Further instructions how to set that up can be found in the [Jitsi setup doc](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-start). It requires some know-how and experience with networks, TURN server and port management.
+---
 
-🔒 If the Jitsi instance is secured via JSON Web Token, you can enter that to the app settings.
-Information about tokens can be found in the [Jitsi authentication doc](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker#authentication).
+## ⚙️ Setup with Your Own Jitsi Server
 
-Nextcloud setup and configuration:
+You can also integrate your **own Jitsi instance**!
 
-- Install the Nextcloud fairmeeting app
-- Go to _Settings_ → _fairmeeting_ and enter your own server URL (and JWT secret)
-- Start conferencing 🍻
+📖 Setup guide: [Jitsi Setup Documentation](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-start)
 
-## Issues
+**Requirements:**  
+Familiarity with networks, TURN servers, and port management.
 
-Report issues and feature requests [here](https://git.fairkom.net/hosting/fairkom/nextcloud_fairmeeting/-/issues).
+### 🔐 JWT Authentication Options:
 
-## Setting up a dev instance
+1. **JWT Token Field:**  
+   Enter a pre-generated **JWT Token** (recommended if you don't want to share your secret key).
 
-- use nextcloud developer docker: https://github.com/juliushaertl/nextcloud-docker-dev
-- in repo folder do `composer install`, `npm install` and `npm run build` (in a manual installed env, you might do all with `sudo -u www-data`)
-- at initial fork we used v28 because the nextcloud jitsi app was only available for stable28 (https://juliushaertl.github.io/nextcloud-docker-dev/), thats why look `pwd` in repo folder and change `~/path/to/appid` and `appid`, look also if other instances with different versions are still running
+2. **JWT_APP_SECRET Field:**  
+   Enter your **JWT_APP_SECRET**, allowing the app to auto-generate tokens.
 
+> **Note:** If both fields are filled, the pre-generated **JWT Token** will take priority.
+
+---
+
+## 🚀 Nextcloud Setup Instructions
+
+1. Install the **Nextcloud fairmeeting app**
+2. Navigate to:  
+   _Settings_ → _fairmeeting_
+3. Configure:
+   - Your Jitsi server URL
+   - Either **JWT Token** **OR** **JWT_APP_SECRET**
+   - Option to open meetings in a **new browser tab** or embedded in Nextcloud
+4. Start conferencing
+
+---
+
+## 🐛 Issues
+
+Report issues and feature requests here:  
+[Issue Tracker](https://git.fairkom.net/hosting/fairkom/nextcloud_fairmeeting/-/issues)
+
+---
+
+## 🛠️ Setting up a Dev Instance
+
+- Use the Nextcloud developer Docker environment
+- In your repo folder:
+
+```bash
+composer install
+npm install
+npm run build
 ```
-docker run --rm -p 8080:80 -e SERVER_BRANCH=v28.0.6 \
+
+```bash
+docker run --rm -p 12345:80 -e SERVER_BRANCH=v28.0.6 \
   -v $(pwd):/var/www/html/apps-extra/fairmeeting \
-  ghcr.io/juliushaertl/nextcloud-dev-php80:latest
+  ghcr.io/juliusknorr/nextcloud-dev-php81:latest
 ```
 
-- then go to http://localhost:8080/index.php/settings/apps, login with u: admin pw: admin, and activate the 'fairmeeting app'
+Then go to http://localhost:12345/index.php/settings/apps, login (admin / admin), and activate the fairmeeting app.
 
 ## Changelog
 

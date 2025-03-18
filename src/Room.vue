@@ -17,48 +17,11 @@
 				<h1 class="room__title">
 					{{ room.name }}
 				</h1>
-				<div class="room__join-browser-section">
-					<div v-if="conferenceDone" class="room__done-info">
-						{{ t("fairmeeting", "Conference left") }}
-					</div>
-					<div
-						v-if="!systemOk"
-						class="room__system-test-summary room__system-test-summary--warning"
-					>
-						<div class="room__system-test-summary__title__row">
-							<CloseThickIcon class="room__system-test-summary__icon" />
-							<div class="room__system-test-summary__title">
-								{{ t("fairmeeting", "Problems detected") }}
-							</div>
-						</div>
-						<div class="room__system-test-summary__text">
-							<ul class="tol-ul-icons">
-								<li v-if="browserStatus === 'warning'">
-									<b>{{ t("fairmeeting", "Your browser is non-optimal:") }}</b
-									><br />
-									<span
-										v-html="
-											t(
-												'fairmeeting',
-												'Audio and video quality could be poor. It is recommended to use a recent <b>Firefox/Chrome/Chromium</b> version.'
-											)
-										"
-									/>
-								</li>
-								<li v-if="browserStatus === 'error'">
-									{{ t("fairmeeting", "Browser not supported") }}
-								</li>
-							</ul>
-						</div>
-						<div class="room__system-test-summary__actions">
-							<a class="button secondary" href="#system-test">
-								{{ t("fairmeeting", "Show system check") }}
-							</a>
-						</div>
-					</div>
+
+				<div v-if="openInNewTab === '1'" class="room__join-browser-section">
 					<div v-if="!user" class="room__username">
 						<label class="room__username-label">
-							{{ t("fairmeeting", "Your name:") }} </label
+							{{ t("fairmeeting", "Your name:") }}</label
 						><br />
 						<input
 							v-model="userName"
@@ -69,128 +32,189 @@
 					</div>
 					<button
 						class="primary room__join-button--browser"
-						:disabled="!systemTestDone || !ready || error || joining"
+						:disabled="!ready || error || joining"
 						@click="joinBrowser"
 					>
-						{{ t("fairmeeting", "Click here to join") }}
+						{{ t("fairmeeting", "Join Meeting") }}
 					</button>
-
-					<div class="room__options">
-						<label class="room__option">
-							<input
-								v-model="startMuted"
-								class="room__option__checkbox"
-								type="checkbox"
-							/>
-							{{ t("fairmeeting", "Start muted") }}
-						</label>
-						<label class="room__option">
-							<input
-								v-model="startCameraOff"
-								class="room__option__checkbox"
-								type="checkbox"
-							/>
-							{{ t("fairmeeting", "Start with camera off") }}
-						</label>
-					</div>
 				</div>
 
-				<SystemTest
-					id="system-test"
-					class="tol-system-test-section"
-					@microphone-selected="onMicrophoneSelected"
-					@camera-selected="onCameraSelected"
-					@speaker-selected="onSpeakerSelected"
-				/>
-
-				<template v-if="displayJoinUsingThefairmeetingApp">
-					<div class="room__join-app-buttons-section">
-						<div class="room__join-app-button-section">
-							<button
-								class="secondary room__join-button--app"
-								:disabled="!systemTestDone || !ready || error || joining"
-								@click="joinDesktopApp"
-							>
-								{{ t("fairmeeting", "Join with desktop app") }}
-							</button>
+				<div v-else>
+					<div class="room__join-browser-section">
+						<div v-if="conferenceDone" class="room__done-info">
+							{{ t("fairmeeting", "Conference left") }}
 						</div>
-						<div class="room__join-app-button-section">
-							<button
-								class="secondary room__join-button--app"
-								:disabled="!systemTestDone || !ready || error || joining"
-								@click="joinMobileApp"
-							>
-								{{ t("fairmeeting", "Join with mobile app") }}
-							</button>
-						</div>
-					</div>
-
-					<div
-						class="room__join-app-toggle"
-						@click="showJoinApp = !showJoinApp"
-					>
-						{{ t("fairmeeting", "App button not working?") }}
-						<ChevronUpIcon
-							class="room__join-app-toggle-icon"
-							:class="{ 'room__join-app-toggle-icon--up': showJoinApp }"
-						/>
-					</div>
-					<div v-if="showJoinApp" class="room__join-app-section">
-						<ol class="room__app-instructions">
-							<li class="room__app-instructions-item">
-								<a
-									target="_blank"
-									href="https://github.com/fairmeeting/fairmeeting-meet-electron#installation"
-								>
-									{{ t("fairmeeting", "Download the desktop app here ↗") }}
+						<div
+							v-if="!systemOk"
+							class="room__system-test-summary room__system-test-summary--warning"
+						>
+							<div class="room__system-test-summary__title__row">
+								<CloseThickIcon class="room__system-test-summary__icon" />
+								<div class="room__system-test-summary__title">
+									{{ t("fairmeeting", "Problems detected") }}
+								</div>
+							</div>
+							<div class="room__system-test-summary__text">
+								<ul class="tol-ul-icons">
+									<li v-if="browserStatus === 'warning'">
+										<b>{{ t("fairmeeting", "Your browser is non-optimal:") }}</b
+										><br />
+										<span
+											v-html="
+												t(
+													'fairmeeting',
+													'Audio and video quality could be poor. It is recommended to use a recent <b>Firefox/Chrome/Chromium</b> version.'
+												)
+											"
+										/>
+									</li>
+									<li v-if="browserStatus === 'error'">
+										{{ t("fairmeeting", "Browser not supported") }}
+									</li>
+								</ul>
+							</div>
+							<div class="room__system-test-summary__actions">
+								<a class="button secondary" href="#system-test">
+									{{ t("fairmeeting", "Show system check") }}
 								</a>
-								<br />
-								{{
-									t(
-										"fairmeeting",
-										"The mobile app is available via the app store of your choice."
-									)
-								}}
-								<br />
-								{{
-									t(
-										"fairmeeting",
-										"After successful installation try the button again."
-									)
-								}}
-							</li>
-							<li
-								class="room__app-instructions-item"
-								v-html="
-									t(
-										'fairmeeting',
-										'Still not working? Copy the link below and paste it into the input field on the fairmeeting App start screen.'
-									)
-								"
-							/>
-						</ol>
-						<div class="room__join-link-container">
+							</div>
+						</div>
+						<div v-if="!user" class="room__username">
+							<label class="room__username-label">
+								{{ t("fairmeeting", "Your name:") }}</label
+							><br />
 							<input
-								class="room__join-link-input"
-								:value="joinAppLink"
-								readonly
+								v-model="userName"
+								class="room__username-input"
+								type="text"
+								maxlength="20"
 							/>
-							<Actions ref="copyLinkActions">
-								<ActionLink
-									:href="joinAppLink"
-									:icon="
-										copied && copySuccess
-											? 'icon-checkmark-color'
-											: 'icon-clippy'
-									"
-									@click.stop.prevent="copyLink"
-								>
-									{{ clipboardTooltip }}
-								</ActionLink>
-							</Actions>
+						</div>
+						<button
+							class="primary room__join-button--browser"
+							:disabled="!systemTestDone || !ready || error || joining"
+							@click="joinBrowser"
+						>
+							{{ t("fairmeeting", "Click here to join") }}
+						</button>
+
+						<div class="room__options">
+							<label class="room__option">
+								<input
+									v-model="startMuted"
+									class="room__option__checkbox"
+									type="checkbox"
+								/>
+								{{ t("fairmeeting", "Start muted") }}
+							</label>
+							<label class="room__option">
+								<input
+									v-model="startCameraOff"
+									class="room__option__checkbox"
+									type="checkbox"
+								/>
+								{{ t("fairmeeting", "Start with camera off") }}
+							</label>
 						</div>
 					</div>
-				</template>
+
+					<SystemTest
+						id="system-test"
+						class="tol-system-test-section"
+						@microphone-selected="onMicrophoneSelected"
+						@camera-selected="onCameraSelected"
+						@speaker-selected="onSpeakerSelected"
+					/>
+
+					<template v-if="displayJoinUsingThefairmeetingApp">
+						<div class="room__join-app-buttons-section">
+							<div class="room__join-app-button-section">
+								<button
+									class="secondary room__join-button--app"
+									:disabled="!systemTestDone || !ready || error || joining"
+									@click="joinDesktopApp"
+								>
+									{{ t("fairmeeting", "Join with desktop app") }}
+								</button>
+							</div>
+							<div class="room__join-app-button-section">
+								<button
+									class="secondary room__join-button--app"
+									:disabled="!systemTestDone || !ready || error || joining"
+									@click="joinMobileApp"
+								>
+									{{ t("fairmeeting", "Join with mobile app") }}
+								</button>
+							</div>
+						</div>
+
+						<div
+							class="room__join-app-toggle"
+							@click="showJoinApp = !showJoinApp"
+						>
+							{{ t("fairmeeting", "App button not working?") }}
+							<ChevronUpIcon
+								class="room__join-app-toggle-icon"
+								:class="{ 'room__join-app-toggle-icon--up': showJoinApp }"
+							/>
+						</div>
+						<div v-if="showJoinApp" class="room__join-app-section">
+							<ol class="room__app-instructions">
+								<li class="room__app-instructions-item">
+									<a
+										target="_blank"
+										href="https://github.com/fairmeeting/fairmeeting-meet-electron#installation"
+									>
+										{{ t("fairmeeting", "Download the desktop app here ↗") }}
+									</a>
+									<br />
+									{{
+										t(
+											"fairmeeting",
+											"The mobile app is available via the app store of your choice."
+										)
+									}}
+									<br />
+									{{
+										t(
+											"fairmeeting",
+											"After successful installation try the button again."
+										)
+									}}
+								</li>
+								<li
+									class="room__app-instructions-item"
+									v-html="
+										t(
+											'fairmeeting',
+											'Still not working? Copy the link below and paste it into the input field on the fairmeeting App start screen.'
+										)
+									"
+								/>
+							</ol>
+							<div class="room__join-link-container">
+								<input
+									class="room__join-link-input"
+									:value="joinAppLink"
+									readonly
+								/>
+								<Actions ref="copyLinkActions">
+									<ActionLink
+										:href="joinAppLink"
+										:icon="
+											copied && copySuccess
+												? 'icon-checkmark-color'
+												: 'icon-clippy'
+										"
+										@click.stop.prevent="copyLink"
+									>
+										{{ clipboardTooltip }}
+									</ActionLink>
+								</Actions>
+							</div>
+						</div>
+					</template>
+				</div>
 			</div>
 			<div
 				ref="conferenceContainer"
@@ -332,17 +356,19 @@ export default {
 		this.startCameraOff =
 			localStorage.getItem("fairmeeting.startCameraOff") === "true";
 
-		this.$root.$on("fairmeeting.device_permission_denied", () => {
-			this.permissionDenied = true;
-		});
+		if (this.openInNewTab !== "1") {
+			this.$root.$on("fairmeeting.device_permission_denied", () => {
+				this.permissionDenied = true;
+			});
 
-		this.$root.$on("fairmeeting.system_test_done", () => {
-			this.systemTestDone = true;
-		});
+			this.$root.$on("fairmeeting.system_test_done", () => {
+				this.systemTestDone = true;
+			});
 
-		this.$root.$on("tol-browser-status", (status) => {
-			this.browserStatus = status;
-		});
+			this.$root.$on("tol-browser-status", (status) => {
+				this.browserStatus = status;
+			});
+		}
 
 		const fairmeetingEle = document.getElementById("fairmeeting");
 		this.serverUrl = fairmeetingEle.dataset.serverUrl;
@@ -355,7 +381,13 @@ export default {
 			fairmeetingEle.dataset.displayAllSharingInvites === "true";
 		const url = new URL(this.serverUrl);
 		this.serverHost = url.host;
-
+		this.openInNewTab =
+			fairmeetingEle.dataset.openInNewTab === "true" ? "1" : "0";
+		this.hasManualJwtToken =
+			fairmeetingEle.dataset.hasManualJwtToken === "true";
+		this.jwtToken = this.hasManualJwtToken
+			? fairmeetingEle.dataset.jwtToken
+			: "";
 		const userResponse = await axios.get(
 			generateUrl("/apps/fairmeeting/api/user")
 		);
@@ -389,6 +421,9 @@ export default {
 		if (token !== null) {
 			this.joinDesktopAppLink += `?jwt=${token}`;
 			this.joinAppLink += `?jwt=${token}`;
+		}
+		if (this.openInNewTab === "1") {
+			this.systemTestDone = true;
 		}
 
 		this.ready = true;
@@ -434,12 +469,72 @@ export default {
 		async joinMobileApp() {
 			window.open(this.joinAppLink, "_self");
 		},
+		async buildMeetingUrl() {
+			let url = `${this.serverUrl}${this.room.name}`;
+			const params = new URLSearchParams();
+
+			const token = await this.issueToken();
+			if (token !== null) {
+				params.append("jwt", token);
+			}
+
+			if (this._startMuted) {
+				params.append("config.startWithAudioMuted", "true");
+			}
+
+			if (this._startCameraOff) {
+				params.append("config.startWithVideoMuted", "true");
+			}
+
+			params.append("userInfo.displayName", this.displayName);
+
+			params.append("config.prejoinPageEnabled", "false");
+
+			params.append("config.disableDeepLinking", "true");
+
+			if (this.displayAllSharingInvites) {
+				params.append(
+					"interfaceConfig.SHARING_FEATURES",
+					"email,url,dial-in,embed"
+				);
+			} else if (this.displaySharingInviteLink) {
+				params.append("interfaceConfig.SHARING_FEATURES", "email");
+			} else {
+				params.append("interfaceConfig.SHARING_FEATURES", "");
+			}
+
+			params.append(
+				"interfaceConfig.HIDE_INVITE_MORE_HEADER",
+				this.displaySharingInviteLink ? "false" : "true"
+			);
+			params.append("interfaceConfig.MOBILE_APP_PROMO", "false");
+
+			// For new tab mode, we don't need to set these device parameters
+			if (this.openInNewTab !== "1") {
+				if (this.selectedCamera) {
+					params.append("devices.videoInput", this.selectedCamera.label);
+				}
+
+				if (this.selectedMicrophone) {
+					params.append("devices.audioInput", this.selectedMicrophone.label);
+				}
+
+				if (this.selectedSpeaker) {
+					params.append("devices.audioOutput", this.selectedSpeaker.label);
+				}
+			}
+
+			const paramsString = params.toString();
+			if (paramsString) {
+				url += `?${paramsString}`;
+			}
+
+			return url;
+		},
 		async joinBrowser() {
 			if (this.joining) {
 				return;
 			}
-
-			document.getElementById("header").style.display = "none";
 
 			this.joining = true;
 
@@ -447,21 +542,30 @@ export default {
 				localStorage.setItem("fairmeeting.userName", this.userName);
 			}
 
+			if (this.openInNewTab === "1") {
+				const url = await this.buildMeetingUrl();
+				window.open(url, "_blank");
+				this.joining = false;
+				return;
+			}
+
 			await this.stopStreams();
+
+			document.getElementById("header").style.display = "none";
 
 			const token = await this.issueToken();
 
-			//fairmeeting Specific: set HIDE_INVITE_MORE_HEADER and SHARING_FEATURE
-			var features = []; //show nothing
+			// fairmeeting Specific: set HIDE_INVITE_MORE_HEADER and SHARING_FEATURE
+			var features = []; // show nothing
 			var inviteMoreHeader = false;
 
 			if (this.displaySharingInviteLink) {
 				inviteMoreHeader = true;
-				features.push("email"); //shows also nothing
+				features.push("email"); // shows also nothing
 			}
 
 			if (this.displayAllSharingInvites) {
-				features = ["email", "url", "dial-in", "embed"]; //show all link
+				features = ["email", "url", "dial-in", "embed"]; // show all link
 			}
 
 			const options = {
@@ -578,6 +682,9 @@ export default {
 			});
 		},
 		async issueToken() {
+			if (this.hasManualJwtToken && this.jwtToken) {
+				return this.jwtToken;
+			}
 			const data = {
 				displayName: this.user ? this.user.displayName : this.userName,
 			};
@@ -634,12 +741,12 @@ export default {
 	width: 250px;
 }
 
-.room__join-button--browser {
-	display: block;
-	font-size: 16px;
-	margin: 0 auto 32px;
-	padding: 16px 32px;
-	width: 250px;
+.room__join-browser-section {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 48px;
+	width: 100%;
 }
 
 .room__join-button--app {

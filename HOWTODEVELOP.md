@@ -17,15 +17,13 @@ uses the nextcloud developer docker: https://github.com/juliushaertl/nextcloud-d
   2. `npm install` – Installs Node.js dependencies.
   3. `npm run build` – Builds the app (e.g., compiles assets, prepares production-ready files).
 
-- I used v28 (https://juliushaertl.github.io/nextcloud-docker-dev/), run the following in command-line to start a nextcloud-dev local dev instance:
-
 ```
-docker run --rm -p 8080:80 -e SERVER_BRANCH=v28.0.6 \
-  -v $(pwd):/var/www/html/apps/fairmeeting \
+docker run --rm -p 12345:80 -e SERVER_BRANCH=v28.0.6 \
+  -v $(pwd):/var/www/html/apps-extra/fairmeeting \
   ghcr.io/juliusknorr/nextcloud-dev-php81:latest
 ```
 
-- than go to http://localhost:8080/index.php/settings/apps, login with u: admin pw: admin, and activate the 'fairmeeting Integration App'
+- than go to http://localhost:12345/index.php/settings/apps, login with u: admin pw: admin, and activate the 'fairmeeting Integration App'
 
 ## Test it on dev2.faircloud.eu:
 
@@ -55,13 +53,13 @@ scp fairmeeting.zip nx-dev2:.
 - Go to where you tranfered it on the server and than copy it into the container nextcloud/aio-nextcloud:latest:
 
 ```
-docker cp fairmeeting.zip d0017486b840:/var/www/html/custom_apps
+docker cp fairmeeting.zip 17d6d6f07e0f:/var/www/html/custom_apps
 ```
 
 - Go inside the container:
 
 ```
-docker exec -it d0017486b840 bash
+docker exec -it 17d6d6f07e0f bash
 ```
 
 - Go to /var/www/html/custom_apps and unzip:cd
@@ -115,4 +113,3 @@ chmod u+x translationtool.phar
 ## Licence
 
 See [LICENCE](./LICENCE)
-

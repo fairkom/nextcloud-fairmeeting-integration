@@ -36,25 +36,31 @@
 								/>
 							</div>
 						</div>
-						<div class="group">
-							<label for="display_join_using_the_fairmeeting_app" class="label">
-								{{
-									t("fairmeeting", 'Display "Join using the fairmeeting app"')
-								}}
+
+						<strong class="group-label">JSON Web Token</strong>
+
+						<div class="group jwt-option">
+							<label for="fairmeeting_jwt_token" class="label">
+								{{ t("fairmeeting", "JWT Token (optional)") }}
 							</label>
 							<div class="input-group">
 								<input
-									id="display_join_using_the_fairmeeting_app"
-									v-model="displayJoinUsingThefairmeetingApp"
-									true-value="1"
-									false-value="0"
-									class="admin-checkbox"
-									type="checkbox"
+									id="fairmeeting_jwt_token"
+									v-model="jwtToken"
+									class="input"
+									type="text"
 								/>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Enter a pre-generated JWT token. This takes precedence over any token generated from the secret."
+										)
+									}}
+								</div>
 							</div>
 						</div>
 
-						<strong class="group-label">JSON Web Token</strong>
 						<div class="group">
 							<label for="fairmeeting_jwt_secret" class="label">
 								{{ t("fairmeeting", "JWT Secret (optional)") }}
@@ -66,6 +72,14 @@
 									class="input"
 									type="text"
 								/>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Used to generate JWT tokens automatically if no token is provided above."
+										)
+									}}
+								</div>
 							</div>
 						</div>
 						<div v-if="jwtSecret" class="group">
@@ -110,6 +124,40 @@
 								/>
 							</div>
 						</div>
+						<strong class="group-label">Nextcloud-Settings</strong>
+						<div class="group">
+							<label for="fairmeeting_open_in_new_tab" class="label">
+								{{ t("fairmeeting", "Open in new tab") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="fairmeeting_open_in_new_tab"
+									v-model="openInNewTab"
+									true-value="1"
+									false-value="0"
+									class="admin-checkbox"
+									type="checkbox"
+								/>
+							</div>
+						</div>
+						<div class="group">
+							<label for="display_join_using_the_fairmeeting_app" class="label">
+								{{
+									t("fairmeeting", 'Display "Join using the fairmeeting app"')
+								}}
+							</label>
+							<div class="input-group">
+								<input
+									id="display_join_using_the_fairmeeting_app"
+									v-model="displayJoinUsingThefairmeetingApp"
+									true-value="1"
+									false-value="0"
+									class="admin-checkbox"
+									type="checkbox"
+								/>
+							</div>
+						</div>
+
 						<strong class="group-label">Invite & Share</strong>
 
 						<div class="group">
@@ -159,6 +207,7 @@ export default {
 			saving: false,
 			saved: false,
 			errorMessage: "",
+			jwtToken: "",
 			jwtSecret: "",
 			jwtAppId: "",
 			jwtAppIdMessage: "",
@@ -169,6 +218,8 @@ export default {
 			serverUrlMessage: "",
 			helpLink: "",
 			displayJoinUsingThefairmeetingApp: 0,
+			openInNewTab: 1,
+			displayAllSharingInvites: 0,
 		};
 	},
 	computed: {
@@ -177,6 +228,7 @@ export default {
 		},
 	},
 	async created() {
+		this.jwtToken = await this.loadSetting("jwt_token", "");
 		this.jwtSecret = await this.loadSetting("jwt_secret");
 		this.jwtAppId = await this.loadSetting("jwt_app_id");
 		this.jwtAudience = await this.loadSetting("jwt_audience");
@@ -187,6 +239,7 @@ export default {
 			"display_join_using_the_fairmeeting_app",
 			"1"
 		);
+		this.openInNewTab = await this.loadSetting("open_in_new_tab", "1");
 		this.displayAllSharingInvites = await this.loadSetting(
 			"display_all_sharing_invites",
 			"1"
@@ -207,6 +260,7 @@ export default {
 
 			await Promise.all([
 				await this.updateSetting("fairmeeting_server_url", this.serverUrl),
+				await this.updateSetting("jwt_token", this.jwtToken),
 				await this.updateSetting("jwt_secret", this.jwtSecret),
 				await this.updateSetting("jwt_app_id", this.jwtAppId),
 				await this.updateSetting("jwt_audience", this.jwtAudience),
@@ -215,6 +269,11 @@ export default {
 				await this.updateSetting(
 					"display_join_using_the_fairmeeting_app",
 					this.displayJoinUsingThefairmeetingApp
+				),
+				await this.updateSetting("open_in_new_tab", this.openInNewTab),
+				await this.updateSetting(
+					"display_all_sharing_invites",
+					this.displayAllSharingInvites
 				),
 			]);
 
@@ -256,10 +315,22 @@ export default {
 
 			this.jwtAppIdMessage = "";
 
-			if (this.jwtSecret && !this.jwtAppId) {
+			// Only validate JWT App ID if secret is provided but no token
+			if (this.jwtSecret && !this.jwtToken && !this.jwtAppId) {
 				this.jwtAppIdMessage = this.t(
 					"fairmeeting",
 					"Please provide the App ID"
+				);
+			}
+
+			// Basic JWT token format validation
+			if (
+				this.jwtToken &&
+				!this.jwtToken.match(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
+			) {
+				this.jwtAppIdMessage = this.t(
+					"fairmeeting",
+					"Invalid JWT token format"
 				);
 			}
 		},
@@ -355,8 +426,17 @@ export default {
 	font-size: 0.9em;
 }
 
+.info-text {
+	color: var(--color-text-lighter);
+	font-size: 0.9em;
+}
+
 .admin-checkbox {
 	cursor: pointer;
+}
+
+.jwt-option {
+	margin-bottom: 12px;
 }
 
 @media only screen and (min-width: 576px) {
