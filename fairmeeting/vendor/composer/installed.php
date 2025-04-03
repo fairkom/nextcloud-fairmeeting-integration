@@ -3,7 +3,7 @@
         'name' => 'fairkom/nextcloud-fairmeeting',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'cfd5c79ea0dbc7c843222f596ebeeb2537292cbb',
+        'reference' => '150660e6d72da2c30ad73ad1ad29e9963e884360',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -94,7 +94,7 @@
         'fairkom/nextcloud-fairmeeting' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'cfd5c79ea0dbc7c843222f596ebeeb2537292cbb',
+            'reference' => '150660e6d72da2c30ad73ad1ad29e9963e884360',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
