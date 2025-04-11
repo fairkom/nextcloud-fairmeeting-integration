@@ -15,8 +15,9 @@ Features:
 - 👏 Emoji reactions and animated GIF interactions
 - 👩🏼‍🏫 Organiser is moderator and can assign moderation rights
 - ➕ Option to open meetings **in a new browser tab** instead of embedded
+- 😸 fairmeeting fair use is one hour for private conferences, or get a [pro plan](https://fairkom.eu/en/fairmeeting) or configure your own Jitsi server	    
 
-Video conferencing is based on the Jitsi framework, see their [documentation](https://github.com/nextcloud/jitsi). fairmeeting is hosted by [fairkom](https://fairkom.eu/en) on a scalable kubernetes cluster, see their [info page](https://fairkom.eu/en/fairmeeting) and [FAQs](https://git.fairkom.net/hosting/fairmeeting/-/wikis/home). The app is based on the Jitsi app by Michael Weimann. 
+Video conferencing is based on the Jitsi framework, see their [documentation](https://github.com/nextcloud/jitsi). fairmeeting is hosted by [fairkom](https://fairkom.eu/en) on a scalable kubernetes cluster, see their [info page](https://fairkom.eu/en/fairmeeting) and [FAQs](https://git.fairkom.net/hosting/fairmeeting/-/wikis/home). This Nextcloud app is based on the [Jitsi app](https://github.com/nextcloud/jitsi). 
     </description>
     <version>0.21.0</version>
     <licence>agpl</licence>
@@ -25,6 +26,7 @@ Video conferencing is based on the Jitsi framework, see their [documentation](ht
     <category>social</category>
     <bugs>https://git.fairkom.net/hosting/nextcloud-fairmeeting-integration/-/issues</bugs>
     <website>https://fairkom.eu/en/fairmeeting</website>
+    <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/fairmeeting_conf.png</screenshot>	
     <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/join.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/rooms.png</screenshot>
 
