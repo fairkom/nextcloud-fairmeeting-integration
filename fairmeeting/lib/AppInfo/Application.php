@@ -21,7 +21,8 @@ class Application extends App implements IBootstrap {
          $policy->addAllowedFrameDomain('https://fairmeeting.net');
          $policy->addAllowedFrameDomain('https://www.paypal.com');
          $policy->addAllowedFrameDomain('https://payment-links.mollie.com');
-		 $policy->addAllowedFrameDomain('https://www.mollie.com');
+         $policy->addAllowedFrameDomain('https://www.mollie.com');
+	 $policy->addAllowedFrameDomain('https://token.pro.fairmeeting.net');	
     	 \OC::$server->getContentSecurityPolicyManager()->addDefaultPolicy($policy);
 	}
 
