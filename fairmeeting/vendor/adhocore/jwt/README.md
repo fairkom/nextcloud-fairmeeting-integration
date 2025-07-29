@@ -3,25 +3,31 @@
 If you are new to JWT or want to refresh your familiarity with it, please check [jwt.io](https://jwt.io/)
 
 [![Latest Version](https://img.shields.io/github/release/adhocore/php-jwt.svg?style=flat-square)](https://github.com/adhocore/php-jwt/releases)
-[![Travis Build](https://img.shields.io/travis/adhocore/php-jwt/master.svg?style=flat-square)](https://travis-ci.org/adhocore/php-jwt?branch=master)
+[![Build](https://github.com/adhocore/php-jwt/actions/workflows/build.yml/badge.svg)](https://github.com/adhocore/php-jwt/actions/workflows/build.yml)
 [![Scrutinizer CI](https://img.shields.io/scrutinizer/g/adhocore/php-jwt.svg?style=flat-square)](https://scrutinizer-ci.com/g/adhocore/php-jwt/?branch=master)
 [![Codecov branch](https://img.shields.io/codecov/c/github/adhocore/php-jwt/master.svg?style=flat-square)](https://codecov.io/gh/adhocore/php-jwt)
 [![StyleCI](https://styleci.io/repos/88168137/shield)](https://styleci.io/repos/88168137)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+JSON+Web+Token+JWT+library+for+PHP7&url=https://github.com/adhocore/php-jwt&hashtags=php,jwt,auth)
+[![Support](https://img.shields.io/static/v1?label=Support&message=%E2%9D%A4&logo=GitHub)](https://github.com/sponsors/adhocore)
+<!-- [![Donate 15](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+15)](https://www.paypal.me/ji10/15usd)
+[![Donate 25](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+25)](https://www.paypal.me/ji10/25usd)
+[![Donate 50](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+50)](https://www.paypal.me/ji10/50usd) -->
 
 
-- Lightweight JSON Web Token (JWT) library for PHP7.
+- Lightweight JSON Web Token (JWT) library for PHP7, PHP8 and beyond.
+- Zero dependency (no vendor bloat).
 - If you still use PHP5.6, use version [0.1.2](https://github.com/adhocore/php-jwt/releases/tag/0.1.2)
 
 ## Installation
 ```sh
-# PHP7.0+
+# PHP7.x, PHP8.x
 composer require adhocore/jwt
 
-# PHP5.6
+# PHP5.6 (deprecated)
 composer require adhocore/jwt:0.1.2
 
-# For PHP5.4-5.5, use version 0.1.2 with a polyfill for https://php.net/hash_equals
+# For PHP5.4-5.5 (deprecated), use version 0.1.2 with a polyfill for https://php.net/hash_equals
 ```
 
 ## Features
@@ -87,7 +93,7 @@ $payload = $jwt->decode($token);
 
 > Oneliner:
 ```php
-$token   = (new JWT('topSecret', 'HS512', 1800))->encode(['uid' => 1, 'scopes' => ['user']]));
+$token   = (new JWT('topSecret', 'HS512', 1800))->encode(['uid' => 1, 'scopes' => ['user']]);
 $payload = (new JWT('topSecret', 'HS512', 1800))->decode($token);
 ```
 
@@ -136,11 +142,11 @@ The library is now marked at version `1.*.*` as being stable in functionality an
 #### Phalcon
 
 Check [adhocore/phalcon-ext](https://github.com/adhocore/phalcon-ext).
-
+<!--
 #### Laravel/Lumen
 
 Coming soon [laravel-jwt](https://github.com/adhocore/laravel-jwt).
-
+-->
 ### Consideration
 
 Be aware of some security related considerations as outlined [here](http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/) which can be valid for any JWT implementations.
