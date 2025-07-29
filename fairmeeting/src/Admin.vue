@@ -175,6 +175,119 @@
 								/>
 							</div>
 						</div>
+
+						<strong class="group-label">Calendar Integration</strong>
+
+						<div class="group">
+							<label for="calendar_integration_enabled" class="label">
+								{{
+									t(
+										"fairmeeting",
+										"Automatically add fairmeeting links to calendar events"
+									)
+								}}
+							</label>
+							<div class="input-group">
+								<input
+									id="calendar_integration_enabled"
+									v-model="calendarIntegrationEnabled"
+									true-value="1"
+									false-value="0"
+									class="admin-checkbox"
+									type="checkbox"
+								/>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"When enabled, video conference links will be automatically added to new calendar events that have attendees or are longer than the minimum duration."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
+						<div v-if="calendarIntegrationEnabled === '1'" class="group">
+							<label for="calendar_minimum_duration" class="label">
+								{{ t("fairmeeting", "Minimum event duration (minutes)") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="calendar_minimum_duration"
+									v-model="calendarMinimumDuration"
+									class="input"
+									type="number"
+									min="1"
+									max="480"
+								/>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Events shorter than this duration will not automatically get fairmeeting links (unless they have attendees)."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
+						<div v-if="calendarIntegrationEnabled === '1'" class="group">
+							<label for="calendar_add_to_description" class="label">
+								{{ t("fairmeeting", "Also add to event description") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="calendar_add_to_description"
+									v-model="calendarAddToDescription"
+									true-value="1"
+									false-value="0"
+									class="admin-checkbox"
+									type="checkbox"
+								/>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"When enabled, fairmeeting links will also be added to the event description (in addition to location)."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
+						<div
+							v-if="
+								calendarIntegrationEnabled === '1' &&
+								calendarAddToDescription === '1'
+							"
+							class="group"
+						>
+							<label for="calendar_description_text" class="label">
+								{{ t("fairmeeting", "Description text template") }}
+							</label>
+							<div class="input-group">
+								<textarea
+									id="calendar_description_text"
+									v-model="calendarDescriptionText"
+									class="input"
+									rows="4"
+									:placeholder="
+										t(
+											'fairmeeting',
+											'Use {MEETING_URL} as placeholder for the meeting link'
+										)
+									"
+								></textarea>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Customize the text that will be added to event descriptions. Use {MEETING_URL} as placeholder."
+										)
+									}}
+								</div>
+							</div>
+						</div>
 						<div class="group group--centered">
 							<button type="submit" class="primary" :disabled="saving">
 								{{ t("fairmeeting", "save") }}
@@ -220,6 +333,10 @@ export default {
 			displayJoinUsingThefairmeetingApp: 0,
 			openInNewTab: 1,
 			displayAllSharingInvites: 0,
+			calendarIntegrationEnabled: "0",
+			calendarMinimumDuration: 15,
+			calendarAddToDescription: "0",
+			calendarDescriptionText: "",
 		};
 	},
 	computed: {
@@ -243,6 +360,22 @@ export default {
 		this.displayAllSharingInvites = await this.loadSetting(
 			"display_all_sharing_invites",
 			"1"
+		);
+		this.calendarIntegrationEnabled = await this.loadSetting(
+			"calendar_integration_enabled",
+			"0"
+		);
+		this.calendarMinimumDuration = await this.loadSetting(
+			"calendar_minimum_duration",
+			"15"
+		);
+		this.calendarAddToDescription = await this.loadSetting(
+			"calendar_add_to_description",
+			"0"
+		);
+		this.calendarDescriptionText = await this.loadSetting(
+			"calendar_description_text",
+			""
 		);
 		this.loading = false;
 	},
@@ -274,6 +407,22 @@ export default {
 				await this.updateSetting(
 					"display_all_sharing_invites",
 					this.displayAllSharingInvites
+				),
+				await this.updateSetting(
+					"calendar_integration_enabled",
+					this.calendarIntegrationEnabled
+				),
+				await this.updateSetting(
+					"calendar_minimum_duration",
+					this.calendarMinimumDuration
+				),
+				await this.updateSetting(
+					"calendar_add_to_description",
+					this.calendarAddToDescription
+				),
+				await this.updateSetting(
+					"calendar_description_text",
+					this.calendarDescriptionText
 				),
 			]);
 

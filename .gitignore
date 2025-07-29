@@ -5,3 +5,8 @@
 .DS_Store
 /signing_files/*
 /releases/*
+fairmeeting.zip
+fairmeeting_v0.22.2.zip
+docker-compose.nextcloud.yml
+fairmeeting_v0.22.3_fixed.zip
+CLAUDE.md

@@ -15,6 +15,10 @@ class Config {
     public const KEY_DISPLAY_JOIN_USING_THE_fairmeeting_APP = 'display_join_using_the_fairmeeting_app';
     public const KEY_ALL_SHARING_INVITES = 'display_all_sharing_invites';
     public const KEY_OPEN_IN_NEW_TAB = 'open_in_new_tab';
+    public const KEY_CALENDAR_INTEGRATION_ENABLED = 'calendar_integration_enabled';
+    public const KEY_CALENDAR_MINIMUM_DURATION = 'calendar_minimum_duration';
+    public const KEY_CALENDAR_ADD_TO_DESCRIPTION = 'calendar_add_to_description';
+    public const KEY_CALENDAR_DESCRIPTION_TEXT = 'calendar_description_text';
     
     public const BOOL_TRUE = '1';
     public const BOOL_FALSE = '0';
@@ -89,6 +93,65 @@ class Config {
     public function openInNewTab(): bool {
         // @phpstan-ignore-next-line
         return $this->readBool(self::KEY_OPEN_IN_NEW_TAB, true);
+    }
+    
+    public function isCalendarIntegrationEnabled(): bool {
+        // @phpstan-ignore-next-line
+        return $this->readBool(self::KEY_CALENDAR_INTEGRATION_ENABLED, false);
+    }
+    
+    public function updateCalendarIntegrationEnabled(bool $enabled): void {
+        $this->config->setAppValue(
+            Application::APP_ID, 
+            self::KEY_CALENDAR_INTEGRATION_ENABLED, 
+            $enabled ? self::BOOL_TRUE : self::BOOL_FALSE
+        );
+    }
+    
+    public function getCalendarMinimumDuration(): int {
+        $value = $this->config->getAppValue(
+            Application::APP_ID,
+            self::KEY_CALENDAR_MINIMUM_DURATION,
+            '15'
+        );
+        
+        return (int)$value;
+    }
+    
+    public function updateCalendarMinimumDuration(int $minutes): void {
+        $this->config->setAppValue(
+            Application::APP_ID, 
+            self::KEY_CALENDAR_MINIMUM_DURATION, 
+            (string)$minutes
+        );
+    }
+    
+    public function isCalendarAddToDescriptionEnabled(): bool {
+        return $this->readBool(self::KEY_CALENDAR_ADD_TO_DESCRIPTION, false);
+    }
+    
+    public function updateCalendarAddToDescriptionEnabled(bool $enabled): void {
+        $this->config->setAppValue(
+            Application::APP_ID, 
+            self::KEY_CALENDAR_ADD_TO_DESCRIPTION, 
+            $enabled ? self::BOOL_TRUE : self::BOOL_FALSE
+        );
+    }
+    
+    public function getCalendarDescriptionText(): string {
+        $text = $this->readString(self::KEY_CALENDAR_DESCRIPTION_TEXT);
+        if ($text === null) {
+            return "\n\n--- fairmeeting Video Conference ---\nJoin: {MEETING_URL}\nAutomatically added by fairmeeting integration";
+        }
+        return $text;
+    }
+    
+    public function updateCalendarDescriptionText(string $text): void {
+        $this->config->setAppValue(
+            Application::APP_ID, 
+            self::KEY_CALENDAR_DESCRIPTION_TEXT, 
+            $text
+        );
     }
     
     private function readBool(string $key, ?bool $default = null): ?bool {

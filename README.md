@@ -22,6 +22,11 @@ Integrate the **fairmeeting** video conferencing service seamlessly into your Ne
 - 🔒 Flexible optional JWT Authentication:
   - **Enter JWT Token directly** (pre-generated, no need to share secrets)
   - **Or provide JWT_APP_SECRET** to auto-generate tokens
+- 📅 **Calendar Integration**:
+  - Automatically adds fairmeeting links to new calendar events
+  - Smart location handling (only adds to empty locations)
+  - Configurable description integration with custom text templates
+  - Works with events that have attendees or meet minimum duration requirements
 
 ---
 
@@ -78,7 +83,57 @@ Familiarity with networks, TURN servers, and port management.
    - Your Jitsi server URL
    - Either **JWT Token** **OR** **JWT_APP_SECRET**
    - Option to open meetings in a **new browser tab** or embedded in Nextcloud
-4. Start conferencing
+4. **Optional - Calendar Integration:**
+   - Enable "Automatically add fairmeeting links to calendar events"
+   - Set minimum event duration (default: 15 minutes)
+   - Choose whether to add links to event descriptions
+   - Customize the description text template with `{MEETING_URL}` placeholder
+5. Start conferencing
+
+---
+
+## 📅 Calendar Integration
+
+The fairmeeting app includes sophisticated automatic calendar integration that seamlessly adds video conference links to calendar events using Nextcloud's CalDAV event system.
+
+### Features:
+
+- **🔗 Automatic Link Injection**: When creating calendar events, fairmeeting links are automatically added to the location field
+- **🎯 Smart Triggers**: Links are added to events that either:
+  - Have attendees (indicating it's a meeting)
+  - Are longer than a configurable minimum duration (default: 15 minutes)
+- **🛡️ Location Protection**: Only adds links to empty location fields (won't overwrite existing locations)
+- **📝 Optional Description Integration**: Can also add meeting info to event descriptions with customizable templates
+- **⚙️ Configurable Templates**: Admins can customize the description text with placeholders like `{MEETING_URL}`
+- **🔄 Event-Driven Architecture**: Uses Nextcloud's native CalDAV events for real-time integration
+
+### Configuration:
+
+1. **Enable Integration**: Check "Automatically add fairmeeting links to calendar events"
+2. **Set Duration**: Configure minimum event duration (events shorter than this need attendees to get links)
+3. **Description Options**: Enable "Also add to event description" if you want meeting info in event descriptions
+4. **Custom Text**: Customize the description template, e.g.:
+
+   ```
+   🎥 Join our video conference:
+   {MEETING_URL}
+
+   See you there!
+   ```
+
+
+### Requirements:
+
+- Nextcloud Calendar app must be installed and enabled
+- fairmeeting app version 0.22.2 or later
+- Calendar integration must be enabled in admin settings
+
+### How it works:
+
+- When you create a new calendar event, the integration automatically detects if it should add a fairmeeting link
+- Links are added to the **location field** (if empty)
+- Optional meeting information is added to the **description** (if enabled)
+- Each event gets a unique room name based on the event title and ID
 
 ---
 
@@ -99,6 +154,8 @@ composer install
 npm install
 npm run build
 ```
+
+- start docker and run
 
 ```bash
 docker run --rm -p 12345:80 -e SERVER_BRANCH=v28.0.6 \
