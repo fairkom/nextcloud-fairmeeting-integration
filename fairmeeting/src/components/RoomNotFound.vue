@@ -11,8 +11,8 @@
 
 <script>
 export default {
-	name: "RoomNotFound",
-};
+	name: 'RoomNotFound',
+}
 </script>
 
 <style scoped></style>

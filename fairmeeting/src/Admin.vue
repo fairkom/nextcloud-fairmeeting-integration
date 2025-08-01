@@ -16,8 +16,7 @@
 									id="fairmeeting_server_url"
 									v-model="serverUrl"
 									class="input"
-									type="text"
-								/>
+									type="text">
 								<div v-if="serverUrlStatus" :class="`${serverUrlStatus}-text`">
 									{{ serverUrlMessage }}
 								</div>
@@ -32,8 +31,7 @@
 									id="fairmeeting_help_link"
 									v-model="helpLink"
 									class="input"
-									type="text"
-								/>
+									type="text">
 							</div>
 						</div>
 
@@ -48,8 +46,7 @@
 									id="fairmeeting_jwt_token"
 									v-model="jwtToken"
 									class="input"
-									type="text"
-								/>
+									type="text">
 								<div class="info-text">
 									{{
 										t(
@@ -70,8 +67,7 @@
 									id="fairmeeting_jwt_secret"
 									v-model="jwtSecret"
 									class="input"
-									type="text"
-								/>
+									type="text">
 								<div class="info-text">
 									{{
 										t(
@@ -91,8 +87,7 @@
 									id="fairmeeting_jwt_app_id"
 									v-model="jwtAppId"
 									class="input"
-									type="text"
-								/>
+									type="text">
 								<div v-if="jwtAppIdMessage" :class="`error-text`">
 									{{ jwtAppIdMessage }}
 								</div>
@@ -107,8 +102,7 @@
 									id="fairmeeting_jwt_audience"
 									v-model="jwtAudience"
 									class="input"
-									type="text"
-								/>
+									type="text">
 							</div>
 						</div>
 						<div v-if="jwtSecret" class="group">
@@ -120,11 +114,31 @@
 									id="fairmeeting_jwt_issuer"
 									v-model="jwtIssuer"
 									class="input"
-									type="text"
-								/>
+									type="text">
 							</div>
 						</div>
 						<strong class="group-label">Nextcloud-Settings</strong>
+						<div class="group">
+							<label for="room_name_prefix" class="label">
+								{{ t("fairmeeting", "Room name prefix (optional)") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="room_name_prefix"
+									v-model="roomNamePrefix"
+									class="input"
+									type="text"
+									:placeholder="t('fairmeeting', 'e.g. Company-')">
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Optional prefix that will be automatically added to all room names."
+										)
+									}}
+								</div>
+							</div>
+						</div>
 						<div class="group">
 							<label for="fairmeeting_open_in_new_tab" class="label">
 								{{ t("fairmeeting", "Open in new tab") }}
@@ -136,8 +150,7 @@
 									true-value="1"
 									false-value="0"
 									class="admin-checkbox"
-									type="checkbox"
-								/>
+									type="checkbox">
 							</div>
 						</div>
 						<div class="group">
@@ -153,8 +166,7 @@
 									true-value="1"
 									false-value="0"
 									class="admin-checkbox"
-									type="checkbox"
-								/>
+									type="checkbox">
 							</div>
 						</div>
 
@@ -171,8 +183,7 @@
 									true-value="1"
 									false-value="0"
 									class="admin-checkbox"
-									type="checkbox"
-								/>
+									type="checkbox">
 							</div>
 						</div>
 
@@ -194,8 +205,7 @@
 									true-value="1"
 									false-value="0"
 									class="admin-checkbox"
-									type="checkbox"
-								/>
+									type="checkbox">
 								<div class="info-text">
 									{{
 										t(
@@ -218,8 +228,7 @@
 									class="input"
 									type="number"
 									min="1"
-									max="480"
-								/>
+									max="480">
 								<div class="info-text">
 									{{
 										t(
@@ -242,8 +251,7 @@
 									true-value="1"
 									false-value="0"
 									class="admin-checkbox"
-									type="checkbox"
-								/>
+									type="checkbox">
 								<div class="info-text">
 									{{
 										t(
@@ -258,10 +266,9 @@
 						<div
 							v-if="
 								calendarIntegrationEnabled === '1' &&
-								calendarAddToDescription === '1'
+									calendarAddToDescription === '1'
 							"
-							class="group"
-						>
+							class="group">
 							<label for="calendar_description_text" class="label">
 								{{ t("fairmeeting", "Description text template") }}
 							</label>
@@ -276,8 +283,7 @@
 											'fairmeeting',
 											'Use {MEETING_URL} as placeholder for the meeting link'
 										)
-									"
-								></textarea>
+									" />
 								<div class="info-text">
 									{{
 										t(
@@ -307,10 +313,10 @@
 </template>
 
 <script>
-import SettingsSection from "@nextcloud/vue/dist/Components/SettingsSection";
+import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 
 export default {
-	name: "Admin",
+	name: 'Admin',
 	components: {
 		SettingsSection,
 	},
@@ -319,205 +325,214 @@ export default {
 			loading: true,
 			saving: false,
 			saved: false,
-			errorMessage: "",
-			jwtToken: "",
-			jwtSecret: "",
-			jwtAppId: "",
-			jwtAppIdMessage: "",
-			jwtAudience: "",
-			jwtIssuer: "",
-			serverUrl: "",
+			errorMessage: '',
+			jwtToken: '',
+			jwtSecret: '',
+			jwtAppId: '',
+			jwtAppIdMessage: '',
+			jwtAudience: '',
+			jwtIssuer: '',
+			serverUrl: '',
 			serverUrlStatus: false,
-			serverUrlMessage: "",
-			helpLink: "",
+			serverUrlMessage: '',
+			helpLink: '',
 			displayJoinUsingThefairmeetingApp: 0,
 			openInNewTab: 1,
 			displayAllSharingInvites: 0,
-			calendarIntegrationEnabled: "0",
+			calendarIntegrationEnabled: '0',
 			calendarMinimumDuration: 15,
-			calendarAddToDescription: "0",
-			calendarDescriptionText: "",
-		};
+			calendarAddToDescription: '0',
+			calendarDescriptionText: '',
+			roomNamePrefix: '',
+		}
 	},
 	computed: {
 		hasError() {
-			return this.serverUrlStatus === "error" || this.jwtAppIdMessage;
+			return this.serverUrlStatus === 'error' || this.jwtAppIdMessage
 		},
 	},
 	async created() {
-		this.jwtToken = await this.loadSetting("jwt_token", "");
-		this.jwtSecret = await this.loadSetting("jwt_secret");
-		this.jwtAppId = await this.loadSetting("jwt_app_id");
-		this.jwtAudience = await this.loadSetting("jwt_audience");
-		this.jwtIssuer = await this.loadSetting("jwt_issuer");
-		this.serverUrl = await this.loadSetting("fairmeeting_server_url");
-		this.helpLink = await this.loadSetting("help_link");
+		this.jwtToken = await this.loadSetting('jwt_token', '')
+		this.jwtSecret = await this.loadSetting('jwt_secret')
+		this.jwtAppId = await this.loadSetting('jwt_app_id')
+		this.jwtAudience = await this.loadSetting('jwt_audience')
+		this.jwtIssuer = await this.loadSetting('jwt_issuer')
+		this.serverUrl = await this.loadSetting('fairmeeting_server_url')
+		this.helpLink = await this.loadSetting('help_link')
 		this.displayJoinUsingThefairmeetingApp = await this.loadSetting(
-			"display_join_using_the_fairmeeting_app",
-			"1"
-		);
-		this.openInNewTab = await this.loadSetting("open_in_new_tab", "1");
+			'display_join_using_the_fairmeeting_app',
+			'1'
+		)
+		this.openInNewTab = await this.loadSetting('open_in_new_tab', '1')
 		this.displayAllSharingInvites = await this.loadSetting(
-			"display_all_sharing_invites",
-			"1"
-		);
+			'display_all_sharing_invites',
+			'1'
+		)
 		this.calendarIntegrationEnabled = await this.loadSetting(
-			"calendar_integration_enabled",
-			"0"
-		);
+			'calendar_integration_enabled',
+			'0'
+		)
 		this.calendarMinimumDuration = await this.loadSetting(
-			"calendar_minimum_duration",
-			"15"
-		);
+			'calendar_minimum_duration',
+			'15'
+		)
 		this.calendarAddToDescription = await this.loadSetting(
-			"calendar_add_to_description",
-			"0"
-		);
+			'calendar_add_to_description',
+			'0'
+		)
 		this.calendarDescriptionText = await this.loadSetting(
-			"calendar_description_text",
-			""
-		);
-		this.loading = false;
+			'calendar_description_text',
+			''
+		)
+		this.roomNamePrefix = await this.loadSetting(
+			'room_name_prefix',
+			''
+		)
+		this.loading = false
 	},
 	methods: {
 		async submit() {
-			this.sanitise();
-			this.validate();
+			this.sanitise()
+			this.validate()
 
 			if (this.hasError) {
-				return;
+				return
 			}
 
-			this.saving = true;
-			this.saved = false;
+			this.saving = true
+			this.saved = false
 
 			await Promise.all([
-				await this.updateSetting("fairmeeting_server_url", this.serverUrl),
-				await this.updateSetting("jwt_token", this.jwtToken),
-				await this.updateSetting("jwt_secret", this.jwtSecret),
-				await this.updateSetting("jwt_app_id", this.jwtAppId),
-				await this.updateSetting("jwt_audience", this.jwtAudience),
-				await this.updateSetting("jwt_issuer", this.jwtIssuer),
-				await this.updateSetting("help_link", this.helpLink),
+				await this.updateSetting('fairmeeting_server_url', this.serverUrl),
+				await this.updateSetting('jwt_token', this.jwtToken),
+				await this.updateSetting('jwt_secret', this.jwtSecret),
+				await this.updateSetting('jwt_app_id', this.jwtAppId),
+				await this.updateSetting('jwt_audience', this.jwtAudience),
+				await this.updateSetting('jwt_issuer', this.jwtIssuer),
+				await this.updateSetting('help_link', this.helpLink),
 				await this.updateSetting(
-					"display_join_using_the_fairmeeting_app",
+					'display_join_using_the_fairmeeting_app',
 					this.displayJoinUsingThefairmeetingApp
 				),
-				await this.updateSetting("open_in_new_tab", this.openInNewTab),
+				await this.updateSetting('open_in_new_tab', this.openInNewTab),
 				await this.updateSetting(
-					"display_all_sharing_invites",
+					'display_all_sharing_invites',
 					this.displayAllSharingInvites
 				),
 				await this.updateSetting(
-					"calendar_integration_enabled",
+					'calendar_integration_enabled',
 					this.calendarIntegrationEnabled
 				),
 				await this.updateSetting(
-					"calendar_minimum_duration",
+					'calendar_minimum_duration',
 					this.calendarMinimumDuration
 				),
 				await this.updateSetting(
-					"calendar_add_to_description",
+					'calendar_add_to_description',
 					this.calendarAddToDescription
 				),
 				await this.updateSetting(
-					"calendar_description_text",
+					'calendar_description_text',
 					this.calendarDescriptionText
 				),
-			]);
+				await this.updateSetting(
+					'room_name_prefix',
+					this.roomNamePrefix
+				),
+			])
 
-			this.saving = false;
-			this.saved = true;
+			this.saving = false
+			this.saved = true
 		},
 		sanitise() {
-			if (this.serverUrl && !this.serverUrl.endsWith("/")) {
-				this.serverUrl += "/";
+			if (this.serverUrl && !this.serverUrl.endsWith('/')) {
+				this.serverUrl += '/'
 			}
 		},
 		validate() {
-			this.serverUrlStatus = false;
-			this.serverUrlMessage = "";
+			this.serverUrlStatus = false
+			this.serverUrlMessage = ''
 
 			if (!this.serverUrl) {
-				this.serverUrlStatus = "error";
+				this.serverUrlStatus = 'error'
 				this.serverUrlMessage = this.t(
-					"fairmeeting",
-					"Please provide a fairmeeting instance URL"
-				);
+					'fairmeeting',
+					'Please provide a fairmeeting instance URL'
+				)
 			}
 
-			if (!this.serverUrl.startsWith("https://")) {
-				this.serverUrlStatus = "error";
+			if (!this.serverUrl.startsWith('https://')) {
+				this.serverUrlStatus = 'error'
 				this.serverUrlMessage = this.t(
-					"fairmeeting",
-					"The server URL must start with https://"
-				);
+					'fairmeeting',
+					'The server URL must start with https://'
+				)
 			}
 
-			if (this.serverUrl === "https://meet.jit.si/") {
-				this.serverUrlStatus = "warning";
+			if (this.serverUrl === 'https://meet.jit.si/') {
+				this.serverUrlStatus = 'warning'
 				this.serverUrlMessage = this.t(
-					"fairmeeting",
-					"It is highly recommended to set up a dedicated fairmeeting instance"
-				);
+					'fairmeeting',
+					'It is highly recommended to set up a dedicated fairmeeting instance'
+				)
 			}
 
-			this.jwtAppIdMessage = "";
+			this.jwtAppIdMessage = ''
 
 			// Only validate JWT App ID if secret is provided but no token
 			if (this.jwtSecret && !this.jwtToken && !this.jwtAppId) {
 				this.jwtAppIdMessage = this.t(
-					"fairmeeting",
-					"Please provide the App ID"
-				);
+					'fairmeeting',
+					'Please provide the App ID'
+				)
 			}
 
 			// Basic JWT token format validation
 			if (
-				this.jwtToken &&
-				!this.jwtToken.match(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
+				this.jwtToken
+				&& !this.jwtToken.match(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
 			) {
 				this.jwtAppIdMessage = this.t(
-					"fairmeeting",
-					"Invalid JWT token format"
-				);
+					'fairmeeting',
+					'Invalid JWT token format'
+				)
 			}
 		},
 		async updateSetting(name, value) {
 			try {
 				await new Promise((resolve, reject) =>
-					OCP.AppConfig.setValue("fairmeeting", name, value, {
+					OCP.AppConfig.setValue('fairmeeting', name, value, {
 						success: resolve,
 						error: reject,
 					})
-				);
+				)
 			} catch (e) {
-				this.error = this.t("fairmeeting", "Failed to save settings");
-				throw e;
+				this.error = this.t('fairmeeting', 'Failed to save settings')
+				throw e
 			}
 		},
 		async loadSetting(name, defaultValue = null) {
 			try {
 				const resDocument = await new Promise((resolve, reject) =>
-					OCP.AppConfig.getValue("fairmeeting", name, defaultValue, {
+					OCP.AppConfig.getValue('fairmeeting', name, defaultValue, {
 						success: resolve,
 						error: reject,
 					})
-				);
-				if (resDocument.querySelector("status").textContent !== "ok") {
-					this.errorMessage = this.t("fairmeeting", "Failed to load settings");
-					console.error("Failed request", resDocument);
-					return;
+				)
+				if (resDocument.querySelector('status').textContent !== 'ok') {
+					this.errorMessage = this.t('fairmeeting', 'Failed to load settings')
+					console.error('Failed request', resDocument)
+					return
 				}
-				const dataEl = resDocument.querySelector("data");
-				return dataEl.firstElementChild.textContent;
+				const dataEl = resDocument.querySelector('data')
+				return dataEl.firstElementChild.textContent
 			} catch (e) {
-				this.errorMessage = this.t("fairmeeting", "Failed to load settings");
-				throw e;
+				this.errorMessage = this.t('fairmeeting', 'Failed to load settings')
+				throw e
 			}
 		},
 	},
-};
+}
 </script>
 
 <style scoped>

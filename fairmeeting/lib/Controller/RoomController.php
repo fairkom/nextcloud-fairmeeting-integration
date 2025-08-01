@@ -64,6 +64,12 @@ class RoomController extends AbstractController {
         }
 
         $room = new Room();
+        
+        $prefix = $this->appConfig->getRoomNamePrefix();
+        if (!empty($prefix)) {
+            $name = $prefix . $name;
+        }
+        
         $room->setName($name);
         $room->setCreatorId($this->userId);
 

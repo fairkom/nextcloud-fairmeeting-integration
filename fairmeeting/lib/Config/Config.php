@@ -19,6 +19,7 @@ class Config {
     public const KEY_CALENDAR_MINIMUM_DURATION = 'calendar_minimum_duration';
     public const KEY_CALENDAR_ADD_TO_DESCRIPTION = 'calendar_add_to_description';
     public const KEY_CALENDAR_DESCRIPTION_TEXT = 'calendar_description_text';
+    public const KEY_ROOM_NAME_PREFIX = 'room_name_prefix';
     
     public const BOOL_TRUE = '1';
     public const BOOL_FALSE = '0';
@@ -151,6 +152,19 @@ class Config {
             Application::APP_ID, 
             self::KEY_CALENDAR_DESCRIPTION_TEXT, 
             $text
+        );
+    }
+    
+    public function getRoomNamePrefix(): string {
+        $prefix = $this->readString(self::KEY_ROOM_NAME_PREFIX);
+        return $prefix ?? '';
+    }
+    
+    public function updateRoomNamePrefix(string $prefix): void {
+        $this->config->setAppValue(
+            Application::APP_ID, 
+            self::KEY_ROOM_NAME_PREFIX, 
+            $prefix
         );
     }
     

@@ -11,26 +11,25 @@
 				<a
 					v-if="$root.helpLink && status !== 'pending' && status !== 'ok'"
 					class="tol-check-title-help"
-					:href="$root.helpLink + '#camera'"
-					>{{ t("fairmeeting", "Help") }}</a
-				>
+					:href="$root.helpLink + '#camera'">{{ t("fairmeeting", "Help") }}</a>
 			</div>
 			<div>
 				<select
 					v-model="selectedCameraId"
 					class="tol-check-select"
-					:disabled="cameras.length === 0"
-				>
+					:disabled="cameras.length === 0">
 					<option
 						v-for="device in cameras"
 						:key="device.deviceId"
-						:value="device.deviceId"
-					>
+						:value="device.deviceId">
 						{{ device.label }}
 					</option>
 				</select>
 				<div class="tol-check-video-container">
-					<video ref="video" class="tol-check-video" playsinline autoplay />
+					<video ref="video"
+						class="tol-check-video"
+						playsinline
+						autoplay />
 				</div>
 			</div>
 		</div>
@@ -38,94 +37,94 @@
 </template>
 
 <script>
-import CheckStatusIcon from "./CheckStatusIcon";
+import CheckStatusIcon from './CheckStatusIcon'
 
 export default {
-	name: "CameraTest",
+	name: 'CameraTest',
 	components: { CheckStatusIcon },
-	props: ["cameras", "permissionDenied"],
+	props: ['cameras', 'permissionDenied'],
 	data() {
 		return {
 			selectedCamera: undefined,
 			stream: undefined,
-			status: "pending",
-		};
+			status: 'pending',
+		}
 	},
 	computed: {
 		selectedCameraId: {
 			get() {
-				return this.selectedCamera ? this.selectedCamera.deviceId : undefined;
+				return this.selectedCamera ? this.selectedCamera.deviceId : undefined
 			},
 			async set(id) {
-				this.selectedCamera = this.cameras.find((ele) => ele.deviceId === id);
-				this.$emit("camera-selected", this.selectedCamera);
+				this.selectedCamera = this.cameras.find((ele) => ele.deviceId === id)
+				this.$emit('camera-selected', this.selectedCamera)
 				localStorage.setItem(
-					"tol-preferred-camera",
+					'tol-preferred-camera',
 					this.selectedCamera.deviceId
-				);
+				)
 
-				await this.startPreview();
+				await this.startPreview()
 			},
 		},
 	},
 	created() {
-		this.$root.$on("stop-streams", () => {
-			this.stop();
-			this.$root.$emit("cam-stopped");
-		});
+		this.$root.$on('stop-streams', () => {
+			this.stop()
+			this.$root.$emit('cam-stopped')
+		})
 
-		this.$root.$on("resume-preview", () => {
-			this.startPreview();
-		});
+		this.$root.$on('resume-preview', () => {
+			this.startPreview()
+		})
 	},
 	mounted() {
 		if (this.permissionDenied || !this.cameras || this.cameras.length === 0) {
-			this.status = "error";
-			return;
+			this.status = 'error'
+			return
 		}
 
-		const preferredCameraId = localStorage.getItem("tol-preferred-camera");
+		const preferredCameraId = localStorage.getItem('tol-preferred-camera')
 
 		if (preferredCameraId) {
 			const cam = this.cameras.find(
 				(ele) => ele.deviceId === preferredCameraId
-			);
+			)
 			if (cam) {
-				this.selectedCameraId = cam.deviceId;
-				return;
+				this.selectedCameraId = cam.deviceId
+				return
 			}
 		}
 
-		this.selectedCameraId = this.cameras[0].deviceId;
+		this.selectedCameraId = this.cameras[0].deviceId
 	},
 	methods: {
 		async startPreview() {
-			this.stop();
+			this.stop()
 
 			try {
 				this.stream = await navigator.mediaDevices.getUserMedia({
 					video: { deviceId: this.selectedCamera.deviceId },
-				});
+				})
 			} catch (err) {
-				if (err.name === "NotAllowedError") {
-					this.status = "error";
+				if (err.name === 'NotAllowedError') {
+					this.status = 'error'
 				}
-				this.status = "error";
-				return;
+				this.status = 'error'
+				return
 			}
 
-			this.$refs.video.srcObject = this.stream;
-			this.status = "ok";
+			this.$refs.video.srcObject = this.stream
+			this.status = 'ok'
 		},
 		stop() {
 			if (this.stream) {
 				this.stream.getTracks().forEach((track) => {
-					track.stop();
-				});
+					track.stop()
+				})
 			}
 		},
 	},
-};
+}
 </script>
 
 <style scoped>
