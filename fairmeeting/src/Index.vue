@@ -10,45 +10,41 @@
 			<img
 				src="./../img/fairmeeting_icon.png"
 				alt="Fairmeeting Icon"
-				class="app-icon"
-			/>
+				class="app-icon">
 			<button
 				v-if="rooms.length > 0"
 				class="icon-add app-title__button"
-				@click="showCreateRoom = true"
-			/>
+				@click="showCreateRoom = true" />
 		</div>
 		<CreateRoomItem
 			v-if="showCreateRoom"
 			@cancelled="showCreateRoom = false"
-			@created="onRoomCreated"
-		/>
+			@created="onRoomCreated" />
 		<RoomList>
 			<RoomListItem
 				v-for="room in rooms"
 				:key="room.id"
 				:room="room"
-				@deleted="refreshRooms"
-			/>
+				@deleted="refreshRooms" />
 			<EmptyRoomListItem v-if="rooms.length === 0" @created="onRoomCreated" />
 		</RoomList>
 	</div>
 </template>
 
 <script>
-import { generateUrl } from "@nextcloud/router";
-import axios from "@nextcloud/axios";
-import EmptyRoomListItem from "./components/EmptyRoomListItem";
-import RoomList from "./components/RoomList";
-import RoomListItem from "./components/RoomListItem";
-import CreateRoomItem from "./components/CreateRoomItem";
-import Breadcrumb from "@nextcloud/vue/dist/Components/Breadcrumb";
-import Breadcrumbs from "@nextcloud/vue/dist/Components/Breadcrumbs";
+import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
+import EmptyRoomListItem from './components/EmptyRoomListItem'
+import RoomList from './components/RoomList'
+import RoomListItem from './components/RoomListItem'
+import CreateRoomItem from './components/CreateRoomItem'
+import Breadcrumb from '@nextcloud/vue/dist/Components/Breadcrumb'
+import Breadcrumbs from '@nextcloud/vue/dist/Components/Breadcrumbs'
 
-import "../css/styles.css";
+import '../css/styles.css'
 
 export default {
-	name: "Index",
+	name: 'Index',
 	components: {
 		Breadcrumb,
 		Breadcrumbs,
@@ -61,22 +57,22 @@ export default {
 		return {
 			showCreateRoom: false,
 			rooms: [],
-		};
+		}
 	},
 	async created() {
-		await this.refreshRooms();
+		await this.refreshRooms()
 	},
 	methods: {
 		async onRoomCreated() {
-			this.showCreateRoom = false;
-			await this.refreshRooms();
+			this.showCreateRoom = false
+			await this.refreshRooms()
 		},
 		async refreshRooms() {
-			const response = await axios.get(generateUrl("/apps/fairmeeting/rooms"));
-			this.rooms = response.data;
+			const response = await axios.get(generateUrl('/apps/fairmeeting/rooms'))
+			this.rooms = response.data
 		},
 	},
-};
+}
 </script>
 
 <style scoped>

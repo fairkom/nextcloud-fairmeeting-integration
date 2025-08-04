@@ -116,7 +116,94 @@ Before submission, ensure your app meets the Nextcloud guidelines:
 
 ## Updating Your App
 
-To update your app, follow the same packaging and signing steps with the new version, then upload a new release through the App Store interface.
+To update your existing app in the store, follow these steps:
+
+### 1. Prepare the Update
+
+1. Merge all feature branches and update version in `info.xml`
+2. Create and push a new git tag:
+   ```bash
+   git tag v0.22.3
+   git push origin v0.22.3
+   ```
+
+### 2. Prepare Dependencies for Production
+
+Before creating the archive, ensure you have production-ready dependencies:
+
+```bash
+cd fairmeeting
+
+# Remove existing vendor to ensure clean state
+rm -rf vendor/
+
+# Install only production dependencies (no dev tools like phpstan, php-cs-fixer)
+composer install --no-dev --optimize-autoloader
+
+# Build frontend assets
+npm install
+npm run build
+
+# Go back to project root
+cd ..
+```
+
+**Why this matters:**
+- **Vendor directory**: Must be included in App Store packages (end users can't run `composer install`)
+- **Production only**: Excludes development tools (phpstan, php-cs-fixer, testing frameworks)
+- **Optimized autoloader**: Faster class loading in production
+- **Built assets**: Compiled JS/CSS files ready for production
+
+### 3. Create the Correct Archive Structure
+
+The app store requires an archive with the app folder as the root directory:
+
+```bash
+# Clean any macOS artifacts first
+find fairmeeting -name "._*" -type f -delete
+find fairmeeting -name ".DS_Store" -type f -delete
+
+# Create archive with correct structure (app folder as root)
+# IMPORTANT: Use COPYFILE_DISABLE=1 on macOS to avoid metadata artifacts
+COPYFILE_DISABLE=1 tar -czf fairmeeting_v0.22.3.tar.gz fairmeeting
+```
+
+**Important:** 
+- The archive must contain a folder named exactly like your app ID (e.g., `fairmeeting/`), not loose files
+- **On macOS:** Always use `COPYFILE_DISABLE=1` to prevent including hidden `._*` files that can break the app
+- **Vendor included**: The archive should contain the `vendor/` directory with production dependencies
+
+### 3. Sign the Archive
+
+Create a new signature for the archive:
+
+```bash
+openssl dgst -sha512 -sign ~/.nextcloud/certificates/fairmeeting.key fairmeeting_v0.22.3_correct.tar.gz | openssl base64 > fairmeeting_v0.22.3_correct.sig
+```
+
+### 4. Upload to GitHub Release
+
+1. Go to your GitHub repository releases
+2. Edit the existing release or create a new one
+3. Upload the `fairmeeting_v0.22.3_correct.tar.gz` file as a release asset
+4. Get the download URL: `https://github.com/user/repo/releases/download/v0.22.3/fairmeeting_v0.22.3_correct.tar.gz`
+
+### 5. Update in App Store
+
+1. Visit the [Nextcloud App Store Developer Portal](https://apps.nextcloud.com/developer/)
+2. Log in and select your app
+3. Click **"Upload app release"**
+4. Provide:
+   - **Download link**: The GitHub release URL
+   - **Signature**: Content of the `.sig` file you created
+5. Submit the form
+
+### Common Issues When Updating
+
+- **"No possible app folder found"**: Archive must contain app folder (e.g., `fairmeeting/`) as root
+- **"App folder must contain only lowercase ASCII characters"**: Ensure folder name matches app ID exactly
+- **"Signature is invalid"**: Create new signature for the new archive - old signatures won't work
+- **Archive structure**: Don't include the entire repository, only the app folder
 
 ## Common Issues
 

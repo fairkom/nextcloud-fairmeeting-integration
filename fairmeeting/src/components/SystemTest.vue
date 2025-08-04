@@ -6,13 +6,11 @@
 
 		<div
 			v-if="!permissionDenied && showProblems"
-			class="tol-system-checks-permission-denied problems"
-		>
+			class="tol-system-checks-permission-denied problems">
 			<div class="tol-system-checks-permission-denied__message-container">
 				<CheckStatusIcon
 					class="tol-system-checks-permission-denied__icon"
-					status="warning"
-				/>
+					status="warning" />
 				<div class="tol-system-checks-permission-denied__title">
 					{{ t("fairmeeting", "Got issues?") }}
 				</div>
@@ -60,42 +58,36 @@
 
 		<div
 			v-if="!loading && !permissionDenied"
-			class="tol-system-checks-container"
-		>
+			class="tol-system-checks-container">
 			<div class="tol-system-check tol-system-check--first">
 				<CameraTest
 					:permission-denied="permissionDenied"
 					:cameras="cameras"
-					v-on="$listeners"
-				/>
+					v-on="$listeners" />
 			</div>
 			<div class="tol-system-check">
 				<MicTest
 					:permission-denied="permissionDenied"
 					:microphones="microphones"
-					v-on="$listeners"
-				/>
-				<hr class="tol-check-divider" />
+					v-on="$listeners" />
+				<hr class="tol-check-divider">
 				<SpeakerTest
 					:permission-denied="permissionDenied"
 					:browser="browser"
 					:speakers="speakers"
-					v-on="$listeners"
-				/>
-				<hr class="tol-check-divider" />
+					v-on="$listeners" />
+				<hr class="tol-check-divider">
 				<BrowserTest :browser="browser" />
 			</div>
 		</div>
 
 		<div
 			v-if="!loading && permissionDenied"
-			class="tol-system-checks-permission-denied"
-		>
+			class="tol-system-checks-permission-denied">
 			<div class="tol-system-checks-permission-denied__message-container">
 				<CheckStatusIcon
 					class="tol-system-checks-permission-denied__icon"
-					status="error"
-				/>
+					status="error" />
 				<div class="tol-system-checks-permission-denied__title">
 					{{ t("fairmeeting", "No camera/microphone access") }}
 				</div>
@@ -106,15 +98,14 @@
 						"fairmeeting",
 						"Review your browser camera and microphone access settings"
 					)
-				}}<br />
+				}}<br>
 			</div>
 			<div style="text-align: center">
 				<ul style="display: inline-block; text-align: left">
 					<li>
 						<a
 							href="https://support.mozilla.org/kb/how-manage-your-camera-and-microphone-permissions"
-							target="_blank"
-						>
+							target="_blank">
 							•
 							{{
 								t("fairmeeting", "Click here for {browser} instructions", {
@@ -127,8 +118,7 @@
 					<li>
 						<a
 							href="https://support.google.com/chrome/answer/2693767"
-							target="_blank"
-						>
+							target="_blank">
 							•
 							{{
 								t("fairmeeting", "Click here for {browser} instructions", {
@@ -141,8 +131,7 @@
 					<li>
 						<a
 							href="https://support.microsoft.com/windows/windows-camera-microphone-and-privacy-a83257bc-e990-d54a-d212-b5e41beba857"
-							target="_blank"
-						>
+							target="_blank">
 							•
 							{{
 								t("fairmeeting", "Click here for {browser} instructions", {
@@ -155,8 +144,7 @@
 					<li>
 						<a
 							href="https://support.apple.com/guide/safari/ibrwe2159f50/mac"
-							target="_blank"
-						>
+							target="_blank">
 							•
 							{{
 								t("fairmeeting", "Click here for {browser} instructions", {
@@ -174,8 +162,7 @@
 				</div>
 				<a
 					:href="$root.helpLink + '#permissions'"
-					class="tol-system-checks-permission-denied__button button secondary"
-				>
+					class="tol-system-checks-permission-denied__button button secondary">
 					{{ t("fairmeeting", "Click here for troubleshooting help") }}
 				</a>
 			</div>
@@ -184,13 +171,13 @@
 </template>
 
 <script>
-import Bowser from "bowser";
-import BrowserTest from "./BrowserTest";
-import CameraTest from "./CameraTest";
-import MicTest from "./MicTest";
-import SpeakerTest from "./SpeakerTest";
-import CheckStatusIcon from "./CheckStatusIcon";
-import { generateFilePath } from "@nextcloud/router";
+import Bowser from 'bowser'
+import BrowserTest from './BrowserTest'
+import CameraTest from './CameraTest'
+import MicTest from './MicTest'
+import SpeakerTest from './SpeakerTest'
+import CheckStatusIcon from './CheckStatusIcon'
+import { generateFilePath } from '@nextcloud/router'
 
 /**
  * @param constraints
@@ -199,22 +186,22 @@ import { generateFilePath } from "@nextcloud/router";
  */
 async function askPermissions(constraints, vm, notFoundCallback) {
 	try {
-		const stream = await navigator.mediaDevices.getUserMedia(constraints);
+		const stream = await navigator.mediaDevices.getUserMedia(constraints)
 		stream.getTracks().forEach((track) => {
-			track.stop();
-		});
+			track.stop()
+		})
 	} catch (err) {
 		// eslint-disable-next-line
 		console.log(`[fairmeeting] getUserMedia() error.name: ${err.name}`);
 		// eslint-disable-next-line
 		console.log(`[fairmeeting] getUserMedia() error.message: ${err.message}`);
 
-		if (err.name === "NotFoundError" && notFoundCallback) {
-			await notFoundCallback();
+		if (err.name === 'NotFoundError' && notFoundCallback) {
+			await notFoundCallback()
 		}
 
-		if (err.name === "NotAllowedError") {
-			vm.permissionDenied = true;
+		if (err.name === 'NotAllowedError') {
+			vm.permissionDenied = true
 			// eslint-disable-next-line
 			vm.$root.$emit("fairmeeting.device_permission_denied");
 		}
@@ -222,7 +209,7 @@ async function askPermissions(constraints, vm, notFoundCallback) {
 }
 
 export default {
-	name: "SystemTest",
+	name: 'SystemTest',
 	components: {
 		CheckStatusIcon,
 		SpeakerTest,
@@ -233,8 +220,8 @@ export default {
 	data() {
 		return {
 			browser: undefined,
-			selectedCamera: "",
-			selectedMicrophone: "",
+			selectedCamera: '',
+			selectedMicrophone: '',
 			cameras: [],
 			microphones: [],
 			speakers: [],
@@ -244,50 +231,50 @@ export default {
 			deviceWithoutLabel: false,
 			showProblems: false,
 			showProblemsTimeoutHandle: null,
-		};
+		}
 	},
 	computed: {
 		allowSrc() {
-			return generateFilePath("fairmeeting", "img", "allow.png");
+			return generateFilePath('fairmeeting', 'img', 'allow.png')
 		},
 		problems() {
-			return this.timeout || this.deviceWithoutLabel;
+			return this.timeout || this.deviceWithoutLabel
 		},
 	},
 	watch: {
 		problems(val) {
-			this.clearTimeout(this.showProblemsTimeoutHandle);
+			this.clearTimeout(this.showProblemsTimeoutHandle)
 
 			if (val) {
 				this.showProblemsTimeoutHandle = setTimeout(() => {
-					this.showProblems = true;
-				}, 1000);
+					this.showProblems = true
+				}, 1000)
 			} else {
-				this.showProblems = false;
+				this.showProblems = false
 			}
 		},
 	},
 	async created() {
-		this.browser = Bowser.getParser(window.navigator.userAgent);
+		this.browser = Bowser.getParser(window.navigator.userAgent)
 
 		const permissionsTimeoutHandle = setTimeout(() => {
 			// eslint-disable-next-line
 			console.log("[fairmeeting] system test timeout reached");
-			this.problems = true;
-		}, 2500);
+			this.problems = true
+		}, 2500)
 
 		// eslint-disable-next-line
 		console.log("[fairmeeting] before askPermissions");
-		this.askPermissions();
+		this.askPermissions()
 		// eslint-disable-next-line
 		console.log("[fairmeeting] after askPermissions");
 
-		this.clearTimeout(permissionsTimeoutHandle);
+		this.clearTimeout(permissionsTimeoutHandle)
 
 		try {
 			// eslint-disable-next-line
 			console.log("[fairmeeting] before queryDevices");
-			await this.queryDevices();
+			await this.queryDevices()
 			// eslint-disable-next-line
 			console.log("[fairmeeting] after queryDevices");
 		} catch (err) {
@@ -299,31 +286,31 @@ export default {
 
 		// eslint-disable-next-line
 		this.$root.$emit("fairmeeting.system_test_done");
-		this.loading = false;
-		this.timeout = false;
+		this.loading = false
+		this.timeout = false
 
-		this.$root.$on("tol-refresh-devices", () => {
+		this.$root.$on('tol-refresh-devices', () => {
 			// console.log('[fairmeeting] tol-refresh-devices')
-			this.queryDevices();
-		});
+			this.queryDevices()
+		})
 	},
 	methods: {
 		clearTimeout(handle) {
 			try {
-				clearTimeout(handle);
+				clearTimeout(handle)
 			} catch (ignore) {}
 		},
 		async askPermissions() {
 			await askPermissions({ audio: true, video: true }, this, async () =>
 				askPermissions({ audio: true }, this)
-			);
+			)
 		},
 		async queryDevices() {
-			const devices = await navigator.mediaDevices.enumerateDevices();
-			const cameras = [];
-			const microphones = [];
-			const speakers = [];
-			let deviceWithoutLabel = false;
+			const devices = await navigator.mediaDevices.enumerateDevices()
+			const cameras = []
+			const microphones = []
+			const speakers = []
+			let deviceWithoutLabel = false
 
 			devices.forEach((device) => {
 				// eslint-disable-next-line
@@ -332,32 +319,32 @@ export default {
 				console.log(device);
 
 				if (!device.label) {
-					deviceWithoutLabel = true;
+					deviceWithoutLabel = true
 				}
 
-				if (device.kind === "videoinput") {
-					cameras.push(device);
+				if (device.kind === 'videoinput') {
+					cameras.push(device)
 				}
 
 				if (
-					device.kind === "audioinput" &&
-					device.label.toLocaleLowerCase().includes("monitor of") === false
+					device.kind === 'audioinput'
+					&& device.label.toLocaleLowerCase().includes('monitor of') === false
 				) {
-					microphones.push(device);
+					microphones.push(device)
 				}
 
-				if (device.kind === "audiooutput") {
-					speakers.push(device);
+				if (device.kind === 'audiooutput') {
+					speakers.push(device)
 				}
-			});
+			})
 
-			this.deviceWithoutLabel = deviceWithoutLabel;
-			this.cameras = cameras;
-			this.microphones = microphones;
-			this.speakers = speakers;
+			this.deviceWithoutLabel = deviceWithoutLabel
+			this.cameras = cameras
+			this.microphones = microphones
+			this.speakers = speakers
 		},
 	},
-};
+}
 </script>
 
 <style scoped>

@@ -15,9 +15,21 @@ uses the nextcloud developer docker: https://github.com/juliushaertl/nextcloud-d
 - Build the app:
   In the repo folder, run the following commands to install dependencies and build the app:
 
-  1. `composer install` – Installs PHP dependencies.
+  1. `composer install` – Installs PHP dependencies (including dev dependencies for development).
   2. `npm install` – Installs Node.js dependencies.
   3. `npm run build` – Builds the app (e.g., compiles assets, prepares production-ready files).
+
+#### Important: Vendor Directory Management
+
+**For Development:**
+- The `vendor/` directory contains PHP dependencies and should be included in your local development environment
+- It's excluded from Git via `.gitignore` (as it should be)
+- Always run `composer install` after cloning the repository
+
+**For Production Packages:**
+- The `vendor/` directory MUST be included in packages for the Nextcloud App Store
+- End users cannot run `composer install`, so all dependencies must be pre-installed
+- Use production-only dependencies: `composer install --no-dev --optimize-autoloader`
 
 ```bash
 docker run --rm -p 12345:80 -e SERVER_BRANCH=v28.0.6 \

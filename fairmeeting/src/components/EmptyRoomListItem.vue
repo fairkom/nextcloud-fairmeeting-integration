@@ -14,8 +14,7 @@
 					class="empty-room-list__new__input"
 					:placeholder="t('fairmeeting', 'Name of the new room')"
 					maxlength="100"
-					type="text"
-				/>
+					type="text">
 				<button type="submit" class="empty-room-list__new__button icon-add" />
 			</div>
 		</form>
@@ -23,29 +22,29 @@
 </template>
 
 <script>
-import axios from "@nextcloud/axios";
-import { generateUrl } from "@nextcloud/router";
+import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
-	name: "EmptyRoomListItem",
+	name: 'EmptyRoomListItem',
 	data() {
 		return {
-			name: "",
-		};
+			name: '',
+		}
 	},
 	mounted() {
-		this.$refs.roomNameInput.focus();
+		this.$refs.roomNameInput.focus()
 	},
 	methods: {
 		async create() {
 			const data = {
 				name: this.name,
-			};
-			await axios.post(generateUrl("/apps/fairmeeting/rooms"), data);
-			this.$emit("created");
+			}
+			await axios.post(generateUrl('/apps/fairmeeting/rooms'), data)
+			this.$emit('created')
 		},
 	},
-};
+}
 </script>
 
 <style scoped>

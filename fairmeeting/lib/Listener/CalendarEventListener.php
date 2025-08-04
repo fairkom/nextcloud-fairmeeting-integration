@@ -235,7 +235,15 @@ class CalendarEventListener implements IEventListener {
 		// Add a short hash of the UID to ensure uniqueness
 		$hash = substr(md5($eventUid), 0, 8);
 		
-		return $cleanTitle . '-' . $hash;
+		$roomName = $cleanTitle . '-' . $hash;
+		
+		// Add room name prefix if configured
+		$prefix = $this->config->getRoomNamePrefix();
+		if (!empty($prefix)) {
+			$roomName = $prefix . $roomName;
+		}
+		
+		return $roomName;
 	}
 
 	private function generateFairmeetingUrl(string $roomName): string {

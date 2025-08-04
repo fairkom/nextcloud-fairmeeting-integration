@@ -7,8 +7,7 @@
 					v-model="name"
 					class="create-room__name"
 					:placeholder="t('fairmeeting', 'Name of the new room')"
-					maxlength="100"
-				/>
+					maxlength="100">
 				<div class="create-room__actions">
 					<Actions>
 						<ActionButton icon="icon-checkmark" />
@@ -24,38 +23,38 @@
 </template>
 
 <script>
-import { generateUrl } from "@nextcloud/router";
-import axios from "@nextcloud/axios";
-import ActionButton from "@nextcloud/vue/dist/Components/ActionButton";
-import Actions from "@nextcloud/vue/dist/Components/Actions";
+import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
+import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import Actions from '@nextcloud/vue/dist/Components/Actions'
 
 export default {
-	name: "CreateRoomItem",
+	name: 'CreateRoomItem',
 	components: {
 		ActionButton,
 		Actions,
 	},
 	data() {
 		return {
-			name: "",
-		};
+			name: '',
+		}
 	},
 	mounted() {
-		this.$refs.roomNameInput.focus();
+		this.$refs.roomNameInput.focus()
 	},
 	methods: {
 		cancel() {
-			this.$emit("cancelled");
+			this.$emit('cancelled')
 		},
 		async create() {
 			const data = {
 				name: this.name,
-			};
-			await axios.post(generateUrl("/apps/fairmeeting/rooms"), data);
-			this.$emit("created");
+			}
+			await axios.post(generateUrl('/apps/fairmeeting/rooms'), data)
+			this.$emit('created')
 		},
 	},
-};
+}
 </script>
 
 <style scoped>

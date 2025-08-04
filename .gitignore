@@ -1,8 +1,11 @@
 /node_modules
 /vendor
+/fairmeeting/vendor
+/fairmeeting/node_modules
 /translationtool.phar
 /js/*
 .DS_Store
+._*
 /signing_files/*
 /releases/*
 fairmeeting.zip
