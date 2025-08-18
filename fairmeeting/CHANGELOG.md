@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.22.5 
+
+### Added
+- Calendar integration for event editing
+- Flexible keyword replacement in location and/or description fields
+- New admin checkboxes to control keyword replacement locations
+
+### Changed
+- Removed "Also add to event description" option
+- Removed description text template
+- Simplified non-keyword mode: only fills empty location fields
+- Moved keyword triggers to bottom of admin interface
+
+### Fixed
+- Keyword detection now searches all fields but only replaces in selected ones  
+- Fixed hanging issue when non-keyword mode encounters existing location content
+- Improved reliability for both event creation and editing
+
 ## 0.22.3
 
 ### Fixed

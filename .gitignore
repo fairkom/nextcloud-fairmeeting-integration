@@ -13,3 +13,8 @@ fairmeeting_v0.22.2.zip
 docker-compose.nextcloud.yml
 fairmeeting_v0.22.3_fixed.zip
 CLAUDE.md
+start-local-instance-and-deploy.sh
+.gitignore
+deploy-production.sh
+deploy-full.sh
+deploy-to-dev.sh
