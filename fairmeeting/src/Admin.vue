@@ -194,7 +194,7 @@
 								{{
 									t(
 										"fairmeeting",
-										"Automatically add fairmeeting links to calendar events"
+										"Automatically add Server meeting links to calendar events"
 									)
 								}}
 							</label>
@@ -233,7 +233,7 @@
 									{{
 										t(
 											"fairmeeting",
-											"Events shorter than this duration will not automatically get fairmeeting links (unless they have attendees)."
+											"Events shorter than this duration will not automatically get Server meeting links (unless they have attendees)."
 										)
 									}}
 								</div>
@@ -256,7 +256,7 @@
 									{{
 										t(
 											"fairmeeting",
-											"When enabled, fairmeeting links will only be added when events contain the specified keyword. When disabled, links are added based on duration and attendees."
+											"When enabled, Server meeting links will only be added when events contain the specified keyword. When disabled, links are added based on duration and attendees."
 										)
 									}}
 								</div>
@@ -278,7 +278,7 @@
 									{{
 										t(
 											"fairmeeting",
-											"When this keyword is found in the selected fields, it will be replaced with a fairmeeting link."
+											"When this keyword is found in the selected fields, it will be replaced with a Server meeting link."
 										)
 									}}
 								</div>
@@ -320,7 +320,7 @@
 									{{
 										t(
 											"fairmeeting",
-											"Select where keywords should be replaced with fairmeeting links. At least one option must be enabled."
+											"Select where keywords should be replaced with Server meeting links. At least one option must be enabled."
 										)
 									}}
 								</div>
