@@ -48,8 +48,8 @@ class CalendarEventListener implements IEventListener {
 			return;
 		}
 
-		// Only process CalendarObjectCreatedEvent, and schedule update for later
-		if ($event instanceof CalendarObjectCreatedEvent) {
+		// Process both CalendarObjectCreatedEvent and CalendarObjectUpdatedEvent
+		if ($event instanceof CalendarObjectCreatedEvent || $event instanceof CalendarObjectUpdatedEvent) {
 			$this->logger->info('Processing calendar event for fairmeeting integration', [
 				'app' => 'fairmeeting',
 				'event_type' => get_class($event)
@@ -158,11 +158,22 @@ class CalendarEventListener implements IEventListener {
 			}
 		}
 
-		// Only add to events that are meetings (have attendees or are longer than configured minimum)
+		// If keyword mode is enabled, check for keyword in location, title, or description
+		if ($this->config->isCalendarUseKeywordEnabled()) {
+			$keyword = $this->config->getCalendarKeyword();
+			return $this->eventContainsKeyword($vEvent, $keyword);
+		}
+
+		// Default behavior: Only add to events that are meetings (have attendees or are longer than configured minimum) AND only if location is empty
 		$hasAttendees = isset($vEvent->ATTENDEE) && count($vEvent->ATTENDEE) > 0;
 		$minimumDuration = $this->config->getCalendarMinimumDuration(); // in minutes
 		
 		if ($hasAttendees || $this->isEventLongEnough($vEvent, $minimumDuration)) {
+			if (isset($vEvent->LOCATION)) {
+				$currentLocation = trim((string)$vEvent->LOCATION);
+				return empty($currentLocation);
+			}
+
 			return true;
 		}
 
@@ -181,6 +192,25 @@ class CalendarEventListener implements IEventListener {
 		return $durationMinutes >= $minimumMinutes;
 	}
 
+	private function eventContainsKeyword($vEvent, string $keyword): bool {
+
+		if (isset($vEvent->LOCATION)) {
+			$location = (string)$vEvent->LOCATION;
+			if (stripos($location, $keyword) !== false) {
+				return true;
+			}
+		}
+
+		if (isset($vEvent->DESCRIPTION)) {
+			$description = (string)$vEvent->DESCRIPTION;
+			if (stripos($description, $keyword) !== false) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private function addFairmeetingToEvent($vEvent, string $principalUri): void {
 		// Generate a unique room name based on event
 		$eventTitle = isset($vEvent->SUMMARY) ? (string)$vEvent->SUMMARY : 'Meeting';
@@ -189,32 +219,42 @@ class CalendarEventListener implements IEventListener {
 		$roomName = $this->generateRoomName($eventTitle, $eventUid);
 		$fairmeetingUrl = $this->generateFairmeetingUrl($roomName);
 
-		// Add location only if not set (don't overwrite existing location)
 		$locationAdded = false;
-		if (isset($vEvent->LOCATION)) {
-			$currentLocation = trim((string)$vEvent->LOCATION);
-			if (empty($currentLocation)) {
-				$vEvent->LOCATION = $fairmeetingUrl;
-				$locationAdded = true;
+		$descriptionAdded = false;
+		
+		if ($this->config->isCalendarUseKeywordEnabled()) {
+			$keyword = $this->config->getCalendarKeyword();
+			
+			if ($this->config->isCalendarKeywordReplaceLocationEnabled()) {
+				if (isset($vEvent->LOCATION)) {
+					$currentLocation = (string)$vEvent->LOCATION;
+					if (stripos($currentLocation, $keyword) !== false) {
+						$vEvent->LOCATION = str_ireplace($keyword, $fairmeetingUrl, $currentLocation);
+						$locationAdded = true;
+					}
+				}
+			}
+			
+			if ($this->config->isCalendarKeywordReplaceDescriptionEnabled()) {
+				if (isset($vEvent->DESCRIPTION)) {
+					$currentDescription = (string)$vEvent->DESCRIPTION;
+					if (stripos($currentDescription, $keyword) !== false) {
+						$vEvent->DESCRIPTION = str_ireplace($keyword, $fairmeetingUrl, $currentDescription);
+						$descriptionAdded = true;
+					}
+				}
 			}
 		} else {
-			$vEvent->add('LOCATION', $fairmeetingUrl);
-			$locationAdded = true;
-		}
-
-		// Add fairmeeting info to description only if enabled in settings
-		if ($this->config->isCalendarAddToDescriptionEnabled()) {
-			$fairmeetingInfo = $this->config->getCalendarDescriptionText();
-			$fairmeetingInfo = str_replace('{MEETING_URL}', $fairmeetingUrl, $fairmeetingInfo);
-
-			if (isset($vEvent->DESCRIPTION)) {
-				$currentDescription = (string)$vEvent->DESCRIPTION;
-				// Only add if fairmeeting info is not already present
-				if (strpos($currentDescription, $fairmeetingUrl) === false) {
-					$vEvent->DESCRIPTION = $currentDescription . $fairmeetingInfo;
+			if (isset($vEvent->LOCATION)) {
+				$currentLocation = trim((string)$vEvent->LOCATION);
+				if (empty($currentLocation)) {
+					$vEvent->LOCATION = $fairmeetingUrl;
+					$locationAdded = true;
 				}
 			} else {
-				$vEvent->add('DESCRIPTION', $fairmeetingInfo);
+
+				$vEvent->add('LOCATION', $fairmeetingUrl);
+				$locationAdded = true;
 			}
 		}
 
@@ -223,7 +263,10 @@ class CalendarEventListener implements IEventListener {
 			'room' => $roomName,
 			'url' => $fairmeetingUrl,
 			'location_added' => $locationAdded,
-			'description_enabled' => $this->config->isCalendarAddToDescriptionEnabled()
+			'description_added' => $descriptionAdded,
+			'keyword_mode' => $this->config->isCalendarUseKeywordEnabled(),
+			'replace_location_enabled' => $this->config->isCalendarKeywordReplaceLocationEnabled(),
+			'replace_description_enabled' => $this->config->isCalendarKeywordReplaceDescriptionEnabled()
 		]);
 	}
 

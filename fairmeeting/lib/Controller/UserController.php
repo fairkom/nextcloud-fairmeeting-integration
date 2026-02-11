@@ -51,6 +51,7 @@ class UserController extends Controller {
 			$userData = null;
 		} else {
 			$userData = [
+				'uid' => $user->getUID(),
 				'displayName' => $user->getDisplayName(),
 				'avatarURL' => $this->generateAvatarUrl($user->getUID()),
 			];

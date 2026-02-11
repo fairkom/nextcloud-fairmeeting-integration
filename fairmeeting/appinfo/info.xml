@@ -19,14 +19,14 @@ Features:
 
 Video conferencing is based on the Jitsi framework, see their [documentation](https://github.com/nextcloud/jitsi). fairmeeting is hosted by [fairkom](https://fairkom.eu/en) on a scalable kubernetes cluster, see their [info page](https://fairkom.eu/en/fairmeeting) and [FAQs](https://git.fairkom.net/hosting/fairmeeting/-/wikis/home). This Nextcloud app is based on the [Jitsi app](https://github.com/nextcloud/jitsi). 
     </description>
-    <version>0.22.3</version>
+    <version>0.22.5</version>
     <licence>agpl</licence>
     <author mail="support@fairkom.eu" homepage="https://fairkom.eu/">fairkom</author>
     <namespace>fairmeeting</namespace>
     <category>social</category>
     <bugs>https://git.fairkom.net/hosting/nextcloud-fairmeeting-integration/-/issues</bugs>
     <website>https://fairkom.eu/en/fairmeeting</website>
-    <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/fairmeeting_conf.png</screenshot>	
+    <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/fairmeeting_conf.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/join.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/fairkom/nextcloud-fairmeeting-integration/refs/heads/master/fairmeeting/screenshots/rooms.png</screenshot>
 
@@ -36,7 +36,7 @@ Video conferencing is based on the Jitsi framework, see their [documentation](ht
 	</settings>
 
     <dependencies>
-        <nextcloud min-version="25" max-version="31"/>
+        <nextcloud min-version="25" max-version="32"/>
     </dependencies>
     <navigations>
         <navigation>

@@ -194,7 +194,7 @@
 								{{
 									t(
 										"fairmeeting",
-										"Automatically add fairmeeting links to calendar events"
+										"Automatically add Server meeting links to calendar events"
 									)
 								}}
 							</label>
@@ -217,7 +217,7 @@
 							</div>
 						</div>
 
-						<div v-if="calendarIntegrationEnabled === '1'" class="group">
+						<div v-if="calendarIntegrationEnabled === '1' && calendarUseKeyword === '0'" class="group">
 							<label for="calendar_minimum_duration" class="label">
 								{{ t("fairmeeting", "Minimum event duration (minutes)") }}
 							</label>
@@ -233,7 +233,7 @@
 									{{
 										t(
 											"fairmeeting",
-											"Events shorter than this duration will not automatically get fairmeeting links (unless they have attendees)."
+											"Events shorter than this duration will not automatically get Server meeting links (unless they have attendees)."
 										)
 									}}
 								</div>
@@ -241,13 +241,13 @@
 						</div>
 
 						<div v-if="calendarIntegrationEnabled === '1'" class="group">
-							<label for="calendar_add_to_description" class="label">
-								{{ t("fairmeeting", "Also add to event description") }}
+							<label for="calendar_use_keyword" class="label">
+								{{ t("fairmeeting", "Use keyword-based triggers") }}
 							</label>
 							<div class="input-group">
 								<input
-									id="calendar_add_to_description"
-									v-model="calendarAddToDescription"
+									id="calendar_use_keyword"
+									v-model="calendarUseKeyword"
 									true-value="1"
 									false-value="0"
 									class="admin-checkbox"
@@ -256,44 +256,77 @@
 									{{
 										t(
 											"fairmeeting",
-											"When enabled, fairmeeting links will also be added to the event description (in addition to location)."
+											"When enabled, Server meeting links will only be added when events contain the specified keyword. When disabled, links are added based on duration and attendees."
 										)
 									}}
 								</div>
 							</div>
 						</div>
 
-						<div
-							v-if="
-								calendarIntegrationEnabled === '1' &&
-									calendarAddToDescription === '1'
-							"
-							class="group">
-							<label for="calendar_description_text" class="label">
-								{{ t("fairmeeting", "Description text template") }}
+						<div v-if="calendarIntegrationEnabled === '1' && calendarUseKeyword === '1'" class="group">
+							<label for="calendar_keyword" class="label">
+								{{ t("fairmeeting", "Trigger keyword") }}
 							</label>
 							<div class="input-group">
-								<textarea
-									id="calendar_description_text"
-									v-model="calendarDescriptionText"
+								<input
+									id="calendar_keyword"
+									v-model="calendarKeyword"
 									class="input"
-									rows="4"
-									:placeholder="
-										t(
-											'fairmeeting',
-											'Use {MEETING_URL} as placeholder for the meeting link'
-										)
-									" />
+									type="text"
+									:placeholder="t('fairmeeting', 'e.g. #fm, fairmeeting, online')">
 								<div class="info-text">
 									{{
 										t(
 											"fairmeeting",
-											"Customize the text that will be added to event descriptions. Use {MEETING_URL} as placeholder."
+											"When this keyword is found in the selected fields, it will be replaced with a Server meeting link."
 										)
 									}}
 								</div>
 							</div>
 						</div>
+
+						<div v-if="calendarIntegrationEnabled === '1' && calendarUseKeyword === '1'" class="group">
+							<label class="label">
+								{{ t("fairmeeting", "Replace keyword in") }}
+							</label>
+							<div class="input-group">
+								<div class="keyword-checkboxes">
+									<div class="checkbox-row">
+										<input
+											id="calendar_keyword_replace_location"
+											v-model="calendarKeywordReplaceLocation"
+											true-value="1"
+											false-value="0"
+											class="admin-checkbox"
+											type="checkbox">
+										<label for="calendar_keyword_replace_location" class="checkbox-label">
+											{{ t("fairmeeting", "Location field") }}
+										</label>
+									</div>
+									<div class="checkbox-row">
+										<input
+											id="calendar_keyword_replace_description"
+											v-model="calendarKeywordReplaceDescription"
+											true-value="1"
+											false-value="0"
+											class="admin-checkbox"
+											type="checkbox">
+										<label for="calendar_keyword_replace_description" class="checkbox-label">
+											{{ t("fairmeeting", "Description field") }}
+										</label>
+									</div>
+								</div>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Select where keywords should be replaced with Server meeting links. At least one option must be enabled."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
 						<div class="group group--centered">
 							<button type="submit" class="primary" :disabled="saving">
 								{{ t("fairmeeting", "save") }}
@@ -341,8 +374,10 @@ export default {
 			displayAllSharingInvites: 0,
 			calendarIntegrationEnabled: '0',
 			calendarMinimumDuration: 15,
-			calendarAddToDescription: '0',
-			calendarDescriptionText: '',
+			calendarUseKeyword: '0',
+			calendarKeyword: '#fm',
+			calendarKeywordReplaceLocation: '1',
+			calendarKeywordReplaceDescription: '0',
 			roomNamePrefix: '',
 		}
 	},
@@ -376,13 +411,21 @@ export default {
 			'calendar_minimum_duration',
 			'15'
 		)
-		this.calendarAddToDescription = await this.loadSetting(
-			'calendar_add_to_description',
+		this.calendarUseKeyword = await this.loadSetting(
+			'calendar_use_keyword',
 			'0'
 		)
-		this.calendarDescriptionText = await this.loadSetting(
-			'calendar_description_text',
-			''
+		this.calendarKeyword = await this.loadSetting(
+			'calendar_keyword',
+			'#fm'
+		)
+		this.calendarKeywordReplaceLocation = await this.loadSetting(
+			'calendar_keyword_replace_location',
+			'1'
+		)
+		this.calendarKeywordReplaceDescription = await this.loadSetting(
+			'calendar_keyword_replace_description',
+			'0'
 		)
 		this.roomNamePrefix = await this.loadSetting(
 			'room_name_prefix',
@@ -428,12 +471,20 @@ export default {
 					this.calendarMinimumDuration
 				),
 				await this.updateSetting(
-					'calendar_add_to_description',
-					this.calendarAddToDescription
+					'calendar_use_keyword',
+					this.calendarUseKeyword
 				),
 				await this.updateSetting(
-					'calendar_description_text',
-					this.calendarDescriptionText
+					'calendar_keyword',
+					this.calendarKeyword
+				),
+				await this.updateSetting(
+					'calendar_keyword_replace_location',
+					this.calendarKeywordReplaceLocation
+				),
+				await this.updateSetting(
+					'calendar_keyword_replace_description',
+					this.calendarKeywordReplaceDescription
 				),
 				await this.updateSetting(
 					'room_name_prefix',
@@ -601,6 +652,21 @@ export default {
 
 .jwt-option {
 	margin-bottom: 12px;
+}
+
+.keyword-checkboxes {
+	margin-bottom: 8px;
+}
+
+.checkbox-row {
+	display: flex;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.checkbox-label {
+	margin-left: 8px;
+	font-size: 0.9em;
 }
 
 @media only screen and (min-width: 576px) {
