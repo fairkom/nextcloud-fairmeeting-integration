@@ -23,6 +23,11 @@ return [
 			'url' => '/api/rooms/{publicId}',
 			'verb' => 'GET',
 		],
+		[
+			'name' => 'room#update',
+			'url' => '/api/rooms/{publicId}',
+			'verb' => 'PUT',
+		],
 		['name' => 'room#delete', 'url' => '/rooms/{id}', 'verb' => 'DELETE'],
 		[
 			'name' => 'room#token',

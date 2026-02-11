@@ -27,6 +27,28 @@
 							type="text"
 							maxlength="20">
 					</div>
+
+					<!-- Room-specific Jitsi configuration for new tab mode - BEFORE join button -->
+					<div v-if="isCreator" class="room__options">
+						<div class="room__options-title">
+							{{ t("fairmeeting", "Room settings") }}
+						</div>
+						<label class="room__option">
+							<input
+								v-model="allStartWithAudioMuted"
+								class="room__option__checkbox"
+								type="checkbox">
+							{{ t("fairmeeting", "All participants start with audio muted") }}
+						</label>
+						<label class="room__option">
+							<input
+								v-model="allStartWithVideoMuted"
+								class="room__option__checkbox"
+								type="checkbox">
+							{{ t("fairmeeting", "All participants start with video muted") }}
+						</label>
+					</div>
+
 					<button
 						class="primary room__join-button--browser"
 						:disabled="!ready || error || joining"
@@ -81,12 +103,6 @@
 								type="text"
 								maxlength="20">
 						</div>
-						<button
-							class="primary room__join-button--browser"
-							:disabled="!systemTestDone || !ready || error || joining"
-							@click="joinBrowser">
-							{{ t("fairmeeting", "Click here to join") }}
-						</button>
 
 						<div class="room__options">
 							<label class="room__option">
@@ -103,7 +119,35 @@
 									type="checkbox">
 								{{ t("fairmeeting", "Start with camera off") }}
 							</label>
+
+							<!-- Room-specific Jitsi configuration - BEFORE join button -->
+							<template v-if="isCreator">
+								<div class="room__options-title">
+									{{ t("fairmeeting", "Room settings") }}
+								</div>
+								<label class="room__option">
+									<input
+										v-model="allStartWithAudioMuted"
+										class="room__option__checkbox"
+										type="checkbox">
+									{{ t("fairmeeting", "All participants start with audio muted") }}
+								</label>
+								<label class="room__option">
+									<input
+										v-model="allStartWithVideoMuted"
+										class="room__option__checkbox"
+										type="checkbox">
+									{{ t("fairmeeting", "All participants start with video muted") }}
+								</label>
+							</template>
 						</div>
+
+						<button
+							class="primary room__join-button--browser"
+							:disabled="!systemTestDone || !ready || error || joining"
+							@click="joinBrowser">
+							{{ t("fairmeeting", "Click here to join") }}
+						</button>
 					</div>
 
 					<SystemTest
@@ -252,6 +296,10 @@ export default {
 			_startCameraOff: false,
 			// eslint-disable-next-line
 			_startMuted: false,
+			// Room settings (local state)
+			localAllStartAudioMuted: false,
+			localAllStartVideoMuted: false,
+			savingSettings: false,
 			serverUrl: null,
 			serverHost: null,
 			selectedCamera: null,
@@ -318,6 +366,29 @@ export default {
 				localStorage.setItem('fairmeeting.startCameraOff', startCameraOff)
 			},
 		},
+		allStartWithAudioMuted: {
+			get() {
+				return this.localAllStartAudioMuted
+			},
+			set(value) {
+				this.localAllStartAudioMuted = value
+				// Auto-save on change
+				this.saveSettings()
+			},
+		},
+		allStartWithVideoMuted: {
+			get() {
+				return this.localAllStartVideoMuted
+			},
+			set(value) {
+				this.localAllStartVideoMuted = value
+				// Auto-save on change
+				this.saveSettings()
+			},
+		},
+		isCreator() {
+			return this.user && this.room && this.user.uid === this.room.creatorId
+		},
 		displayName() {
 			return this.user ? this.user.displayName : this.userName
 		},
@@ -380,6 +451,9 @@ export default {
 				generateUrl(`/apps/fairmeeting/api/rooms/${this.extractRoomId()}`)
 			)
 			this.room = roomResponse.data
+
+			// Load room settings from database into local state
+			this.loadSettings()
 		} catch (e) {
 			if (e?.response?.status === 404) {
 				this.roomNotFound = true
@@ -466,8 +540,6 @@ export default {
 
 			params.append('userInfo.displayName', this.displayName)
 
-			params.append('config.prejoinPageEnabled', 'false')
-
 			params.append('config.disableDeepLinking', 'true')
 
 			if (this.displayAllSharingInvites) {
@@ -500,6 +572,20 @@ export default {
 				if (this.selectedSpeaker) {
 					params.append('devices.audioOutput', this.selectedSpeaker.label)
 				}
+			}
+
+			// Room-specific Jitsi configuration
+			console.log('[fairmeeting] Building meeting URL with room settings:', {
+				allStartAudioMuted: this.room?.allStartAudioMuted,
+				allStartVideoMuted: this.room?.allStartVideoMuted,
+			})
+
+			if (this.room && this.room.allStartAudioMuted) {
+				params.append('config.startWithAudioMuted', 'true')
+			}
+
+			if (this.room && this.room.allStartVideoMuted) {
+				params.append('config.startWithVideoMuted', 'true')
 			}
 
 			const paramsString = params.toString()
@@ -582,6 +668,15 @@ export default {
 			}
 
 			if (this._startCameraOff) {
+				configOverwrite.startWithVideoMuted = true
+			}
+
+			// Room-specific Jitsi configuration
+			if (this.room && this.room.allStartAudioMuted) {
+				configOverwrite.startWithAudioMuted = true
+			}
+
+			if (this.room && this.room.allStartVideoMuted) {
 				configOverwrite.startWithVideoMuted = true
 			}
 
@@ -684,6 +779,51 @@ export default {
 			}
 
 			return urlParts[2]
+		},
+		loadSettings() {
+			if (!this.room) {
+				return
+			}
+
+			// Load settings from database into local state
+			console.log('[fairmeeting] Loading settings from room:', this.room)
+			this.localAllStartAudioMuted = this.room.allStartAudioMuted || false
+			this.localAllStartVideoMuted = this.room.allStartVideoMuted || false
+		},
+		async saveSettings() {
+			if (!this.room || !this.isCreator || this.savingSettings) {
+				return
+			}
+
+			this.savingSettings = true
+
+			try {
+				const updatedSettings = {
+					publicId: this.room.publicId,
+					allStartAudioMuted: this.localAllStartAudioMuted,
+					allStartVideoMuted: this.localAllStartVideoMuted,
+				}
+
+				const response = await axios.put(
+					generateUrl(`/apps/fairmeeting/api/rooms/${this.room.publicId}`),
+					updatedSettings
+				)
+
+				// Update the room object with the response
+				this.room = response.data
+			} catch (error) {
+				console.error('Failed to save room settings:', error)
+
+				// Show error message
+				if (window.OC && window.OC.Notification) {
+					window.OC.Notification.showTemporary(
+						this.t('fairmeeting', 'Failed to save room settings'),
+						{ type: 'error' }
+					)
+				}
+			} finally {
+				this.savingSettings = false
+			}
 		},
 	},
 }
@@ -819,6 +959,13 @@ export default {
 
 .room__options {
 	margin-bottom: 16px;
+}
+
+.room__options-title {
+	font-weight: bold;
+	font-size: 16px;
+	margin-bottom: 12px;
+	margin-top: 16px;
 }
 
 .room__option {

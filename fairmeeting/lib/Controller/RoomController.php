@@ -113,6 +113,33 @@ class RoomController extends AbstractController {
 
     /**
      * @NoAdminRequired
+     */
+    public function update(
+        string $publicId,
+        bool $allStartAudioMuted,
+        bool $allStartVideoMuted
+    ): DataResponse {
+        $room = $this->roomMapper->findOneByPublicId($publicId);
+
+        if ($room === null) {
+            return new DataResponse([], Http::STATUS_NOT_FOUND);
+        }
+
+        // Only the room creator can update settings
+        if ($room->getCreatorId() !== $this->userId) {
+            return new DataResponse(['error' => 'Only room creator can update settings'], Http::STATUS_FORBIDDEN);
+        }
+
+        $room->setAllStartAudioMuted($allStartAudioMuted);
+        $room->setAllStartVideoMuted($allStartVideoMuted);
+
+        $updatedRoom = $this->roomMapper->update($room);
+
+        return new DataResponse($updatedRoom);
+    }
+
+    /**
+     * @NoAdminRequired
      * @PublicPage
      */
     public function token(string $publicId, ?string $displayName): DataResponse {
