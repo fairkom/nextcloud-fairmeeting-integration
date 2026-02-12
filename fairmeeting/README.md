@@ -22,6 +22,12 @@ Integrate the **fairmeeting** video conferencing service seamlessly into your Ne
 - 🔒 Flexible optional JWT Authentication:
   - **Enter JWT Token directly** (pre-generated, no need to share secrets)
   - **Or provide JWT_APP_SECRET** to auto-generate tokens
+- 📅 **Calendar Integration**:
+  - Automatically adds fairmeeting links to new calendar events
+  - Smart location handling (only adds to empty locations)
+  - Keyword-based triggers: Use keywords like `#fm` to auto-generate meeting links
+  - Flexible keyword replacement in location and/or description fields
+  - Works with events that have attendees or meet minimum duration requirements
 
 ---
 
@@ -72,13 +78,38 @@ Familiarity with networks, TURN servers, and port management.
 ## 🚀 Nextcloud Setup Instructions
 
 1. Install the **Nextcloud fairmeeting app**
-2. Navigate to:  
+2. Navigate to:
    _Settings_ → _fairmeeting_
 3. Configure:
    - Your Jitsi server URL
    - Either **JWT Token** **OR** **JWT_APP_SECRET**
    - Option to open meetings in a **new browser tab** or embedded in Nextcloud
-4. Start conferencing
+4. **Optional - Calendar Integration:**
+   - Enable "Automatically add fairmeeting links to calendar events"
+   - Set minimum event duration (default: 15 minutes)
+   - Enable "Use keyword-based triggers" for manual control
+   - Configure trigger keyword (e.g., `#fm`, `fairmeeting`, `online`)
+   - Choose where keywords should be replaced (location and/or description fields)
+5. Start conferencing
+
+---
+
+## 📅 Calendar Integration
+
+The fairmeeting app includes automatic calendar integration with keyword-based triggers.
+
+### How it works:
+
+#### Automatic Mode (default):
+- fairmeeting links are automatically added to calendar events with attendees or that meet the minimum duration
+- Links are added to empty location fields only
+
+#### Keyword-Based Mode (optional):
+- Enable "Use keyword-based triggers" in admin settings
+- Set your trigger keyword (default: `#fm`)
+- Users add the keyword to their calendar events
+- The keyword is replaced with a fairmeeting link
+- Example: "Team Meeting #fm" → "Team Meeting https://fairmeeting.net/xyz"
 
 ---
 

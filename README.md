@@ -25,7 +25,8 @@ Integrate the **fairmeeting** video conferencing service seamlessly into your Ne
 - 📅 **Calendar Integration**:
   - Automatically adds fairmeeting links to new calendar events
   - Smart location handling (only adds to empty locations)
-  - Configurable description integration with custom text templates
+  - Keyword-based triggers: Use keywords like `#fm` to auto-generate meeting links
+  - Flexible keyword replacement in location and/or description fields
   - Works with events that have attendees or meet minimum duration requirements
 
 ---
@@ -86,8 +87,9 @@ Familiarity with networks, TURN servers, and port management.
 4. **Optional - Calendar Integration:**
    - Enable "Automatically add fairmeeting links to calendar events"
    - Set minimum event duration (default: 15 minutes)
-   - Choose whether to add links to event descriptions
-   - Customize the description text template with `{MEETING_URL}` placeholder
+   - Enable "Use keyword-based triggers" for manual control
+   - Configure trigger keyword (e.g., `#fm`, `fairmeeting`, `online`)
+   - Choose where keywords should be replaced (location and/or description fields)
 5. Start conferencing
 
 ---
@@ -103,24 +105,22 @@ The fairmeeting app includes sophisticated automatic calendar integration that s
   - Have attendees (indicating it's a meeting)
   - Are longer than a configurable minimum duration (default: 15 minutes)
 - **🛡️ Location Protection**: Only adds links to empty location fields (won't overwrite existing locations)
-- **📝 Optional Description Integration**: Can also add meeting info to event descriptions with customizable templates
-- **⚙️ Configurable Templates**: Admins can customize the description text with placeholders like `{MEETING_URL}`
+- **🔑 Keyword-Based Triggers**: For more control, enable keyword-based mode:
+  - Users add a keyword (e.g., `#fm`) to their calendar event
+  - The keyword is automatically replaced with a fairmeeting link
+  - Works in location and/or description fields (admin configurable)
 - **🔄 Event-Driven Architecture**: Uses Nextcloud's native CalDAV events for real-time integration
 
 ### Configuration:
 
 1. **Enable Integration**: Check "Automatically add fairmeeting links to calendar events"
 2. **Set Duration**: Configure minimum event duration (events shorter than this need attendees to get links)
-3. **Description Options**: Enable "Also add to event description" if you want meeting info in event descriptions
-4. **Custom Text**: Customize the description template, e.g.:
-
-   ```
-   🎥 Join our video conference:
-   {MEETING_URL}
-
-   See you there!
-   ```
-
+3. **Keyword-Based Mode** (optional for more control):
+   - Enable "Use keyword-based triggers"
+   - Set your trigger keyword (default: `#fm`)
+   - Choose replacement locations:
+     - ✅ **Location field**: Replace keyword in event location
+     - ✅ **Description field**: Replace keyword in event description
 
 ### Requirements:
 
@@ -130,10 +130,16 @@ The fairmeeting app includes sophisticated automatic calendar integration that s
 
 ### How it works:
 
+#### Automatic Mode (default):
 - When you create a new calendar event, the integration automatically detects if it should add a fairmeeting link
 - Links are added to the **location field** (if empty)
-- Optional meeting information is added to the **description** (if enabled)
 - Each event gets a unique room name based on the event title and ID
+
+#### Keyword-Based Mode (when enabled):
+- Users add the configured keyword (e.g., `#fm`) to their event
+- The keyword is found and replaced with a fairmeeting link
+- Works in location and/or description based on admin settings
+- Example: "Team Meeting #fm" → "Team Meeting https://fairmeeting.net/xyz"
 
 ---
 
