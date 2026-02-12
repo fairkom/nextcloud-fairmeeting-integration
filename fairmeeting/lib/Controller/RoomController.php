@@ -64,12 +64,15 @@ class RoomController extends AbstractController {
         }
 
         $room = new Room();
-        
+
+        // Replace slashes with underscores to prevent Jitsi tenant issues
+        $name = str_replace('/', '_', $name);
+
         $prefix = $this->appConfig->getRoomNamePrefix();
         if (!empty($prefix)) {
             $name = $prefix . $name;
         }
-        
+
         $room->setName($name);
         $room->setCreatorId($this->userId);
 
