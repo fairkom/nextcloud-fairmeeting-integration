@@ -61,29 +61,26 @@ class CalendarEventListener implements IEventListener {
 	}
 
 	private function scheduleCalendarEventUpdate($event): void {
-		// Schedule the update to run after the current request completes
+		// Process the event inline. Earlier versions deferred this to a
+		// register_shutdown_function with sleep(3), which on Apache/PHP-FPM
+		// blocked the response for 3+ seconds per save. The inline write
+		// triggers an UpdatedEvent for our own write, but shouldAddFairmeeting
+		// returns false on the second pass (URL is already in LOCATION), so
+		// there is no infinite loop.
 		$calendarData = $event->getCalendarData();
 		$objectData = $event->getObjectData();
-		
-		$this->logger->info('Scheduling delayed fairmeeting update for calendar event', [
+
+		$this->logger->debug('Processing fairmeeting calendar event inline', [
 			'app' => 'fairmeeting',
 			'calendar_uri' => $calendarData['uri'],
 			'object_uri' => $objectData['uri']
 		]);
 
-		// Store event data for later processing
-		$eventData = [
+		$this->processStoredCalendarEvent([
 			'calendar_data' => $calendarData,
 			'object_data' => $objectData,
-			'calendar_object' => $objectData['calendardata']
-		];
-
-		// Register shutdown function to process after response is sent
-		register_shutdown_function(function() use ($eventData) {
-			// Wait a moment for the initial request to fully complete
-			sleep(3);
-			$this->processStoredCalendarEvent($eventData);
-		});
+			'calendar_object' => $objectData['calendardata'],
+		]);
 	}
 
 	private function processStoredCalendarEvent(array $eventData): void {

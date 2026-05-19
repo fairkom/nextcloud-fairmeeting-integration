@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.22.8
+
+### Fixed
+- Saving a calendar event no longer blocks the response for ~3 seconds.
+  The listener used to defer its work into a `register_shutdown_function`
+  with a hard-coded `sleep(3)`, which under Apache/PHP-FPM kept the HTTP
+  connection open until the callback returned. The listener now processes
+  the event inline; the self-triggered UpdatedEvent for the second write
+  short-circuits in `shouldAddFairmeeting()` (URL already present), so
+  there is no loop.
+
 ## 0.22.7
 
 ### Fixed
