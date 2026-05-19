@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.22.7
+
+### Fixed
+- Calendar integration now works on Nextcloud 32. The calendar event listener
+  was registered against the legacy `OCA\DAV\Events\CalendarObject{Created,Updated}Event`
+  classes, which were moved to `OCP\Calendar\Events\` in NC32. The listener is
+  now registered for both namespaces, so meetings created with attendees or
+  longer than the configured minimum duration receive a fairmeeting link
+  on NC32 as well.
+- Replaced deprecated `OCP\ILogger` with `Psr\Log\LoggerInterface` in the
+  calendar event listener.
+
 ## 0.22.6
 
 ### Fixed

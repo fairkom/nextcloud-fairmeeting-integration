@@ -4,3 +4,14 @@ parameters:
         - lib
     scanDirectories:
         - ../..
+    ignoreErrors:
+        # Both namespaces are registered intentionally to support multiple
+        # Nextcloud versions: OCP\Calendar\Events\* is NC32+, OCA\DAV\Events\*
+        # is pre-NC32. Whichever is missing on the current scan target is fine,
+        # because ::class does not autoload and the dispatcher just never fires.
+        -
+            message: '#OCP\\Calendar\\Events\\CalendarObject(Created|Updated)Event#'
+            path: lib/AppInfo/Application.php
+        -
+            message: '#OCA\\DAV\\Events\\CalendarObject(Created|Updated)Event#'
+            path: lib/AppInfo/Application.php

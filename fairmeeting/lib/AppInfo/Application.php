@@ -10,8 +10,6 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
-use OCA\DAV\Events\CalendarObjectCreatedEvent;
-use OCA\DAV\Events\CalendarObjectUpdatedEvent;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'fairmeeting';
@@ -35,9 +33,13 @@ class Application extends App implements IBootstrap {
 		require_once __DIR__ . '/../../vendor/autoload.php';
 		$context->registerSearchProvider(Provider::class);
 		
-		// Register calendar event listeners for automatic fairmeeting integration
-		$context->registerEventListener(CalendarObjectCreatedEvent::class, CalendarEventListener::class);
-		$context->registerEventListener(CalendarObjectUpdatedEvent::class, CalendarEventListener::class);
+		// Register calendar event listeners for automatic fairmeeting integration.
+		// NC32 moved these to OCP\Calendar\Events; pre-32 still emits the OCA\DAV\Events variant.
+		// ::class is a compile-time string and does not autoload, so listing missing classes is safe.
+		$context->registerEventListener(\OCP\Calendar\Events\CalendarObjectCreatedEvent::class, CalendarEventListener::class);
+		$context->registerEventListener(\OCP\Calendar\Events\CalendarObjectUpdatedEvent::class, CalendarEventListener::class);
+		$context->registerEventListener(\OCA\DAV\Events\CalendarObjectCreatedEvent::class, CalendarEventListener::class);
+		$context->registerEventListener(\OCA\DAV\Events\CalendarObjectUpdatedEvent::class, CalendarEventListener::class);
 	}
 
 	public function boot(IBootContext $context): void {

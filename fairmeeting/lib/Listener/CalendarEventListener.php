@@ -4,28 +4,28 @@ declare(strict_types=1);
 namespace OCA\fairmeeting\Listener;
 
 use OCA\fairmeeting\Config\Config;
-use OCA\DAV\Events\CalendarObjectCreatedEvent;
-use OCA\DAV\Events\CalendarObjectUpdatedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 use OCP\Calendar\IManager as ICalendarManager;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Reader;
 use OCA\DAV\CalDAV\CalDavBackend;
 
 /**
- * @template-implements IEventListener<CalendarObjectCreatedEvent|CalendarObjectUpdatedEvent>
+ * Handles calendar object create/update events from both the modern
+ * OCP\Calendar\Events namespace (NC32+) and the legacy OCA\DAV\Events
+ * namespace (pre-NC32).
  */
 class CalendarEventListener implements IEventListener {
 	private Config $config;
-	private ILogger $logger;
+	private LoggerInterface $logger;
 	private ICalendarManager $calendarManager;
 	private CalDavBackend $calDavBackend;
 
 	public function __construct(
 		Config $config,
-		ILogger $logger,
+		LoggerInterface $logger,
 		ICalendarManager $calendarManager,
 		CalDavBackend $calDavBackend
 	) {
@@ -48,8 +48,10 @@ class CalendarEventListener implements IEventListener {
 			return;
 		}
 
-		// Process both CalendarObjectCreatedEvent and CalendarObjectUpdatedEvent
-		if ($event instanceof CalendarObjectCreatedEvent || $event instanceof CalendarObjectUpdatedEvent) {
+		// Accept both the OCP\Calendar\Events variant (NC32+) and the legacy
+		// OCA\DAV\Events variant (pre-NC32). Both expose getCalendarData()
+		// and getObjectData(), so we duck-type on those methods.
+		if (method_exists($event, 'getCalendarData') && method_exists($event, 'getObjectData')) {
 			$this->logger->info('Processing calendar event for fairmeeting integration', [
 				'app' => 'fairmeeting',
 				'event_type' => get_class($event)
