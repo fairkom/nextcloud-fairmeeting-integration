@@ -327,6 +327,48 @@
 							</div>
 						</div>
 
+						<div class="group">
+							<label class="label">
+								{{ t("fairmeeting", "Meeting URL defaults") }}
+							</label>
+							<div class="input-group">
+								<div class="keyword-checkboxes">
+									<div class="checkbox-row">
+										<input
+											id="meeting_skip_prejoin"
+											v-model="meetingSkipPrejoin"
+											true-value="1"
+											false-value="0"
+											class="admin-checkbox"
+											type="checkbox">
+										<label for="meeting_skip_prejoin" class="checkbox-label">
+											{{ t("fairmeeting", "Skip prejoin page by default") }}
+										</label>
+									</div>
+									<div class="checkbox-row">
+										<input
+											id="meeting_disable_deep_linking"
+											v-model="meetingDisableDeepLinking"
+											true-value="1"
+											false-value="0"
+											class="admin-checkbox"
+											type="checkbox">
+										<label for="meeting_disable_deep_linking" class="checkbox-label">
+											{{ t("fairmeeting", "Disable mobile app prompt by default") }}
+										</label>
+									</div>
+								</div>
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Defaults for new rooms and calendar-generated meeting links. Users can override these per room on the meeting page."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
 						<div class="group group--centered">
 							<button type="submit" class="primary" :disabled="saving">
 								{{ t("fairmeeting", "save") }}
@@ -378,6 +420,8 @@ export default {
 			calendarKeyword: '#fm',
 			calendarKeywordReplaceLocation: '1',
 			calendarKeywordReplaceDescription: '0',
+			meetingSkipPrejoin: '0',
+			meetingDisableDeepLinking: '0',
 			roomNamePrefix: '',
 		}
 	},
@@ -425,6 +469,14 @@ export default {
 		)
 		this.calendarKeywordReplaceDescription = await this.loadSetting(
 			'calendar_keyword_replace_description',
+			'0'
+		)
+		this.meetingSkipPrejoin = await this.loadSetting(
+			'meeting_skip_prejoin',
+			'0'
+		)
+		this.meetingDisableDeepLinking = await this.loadSetting(
+			'meeting_disable_deep_linking',
 			'0'
 		)
 		this.roomNamePrefix = await this.loadSetting(
@@ -485,6 +537,14 @@ export default {
 				await this.updateSetting(
 					'calendar_keyword_replace_description',
 					this.calendarKeywordReplaceDescription
+				),
+				await this.updateSetting(
+					'meeting_skip_prejoin',
+					this.meetingSkipPrejoin
+				),
+				await this.updateSetting(
+					'meeting_disable_deep_linking',
+					this.meetingDisableDeepLinking
 				),
 				await this.updateSetting(
 					'room_name_prefix',

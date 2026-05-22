@@ -22,6 +22,8 @@ class Config {
     public const KEY_CALENDAR_USE_KEYWORD = 'calendar_use_keyword';
     public const KEY_CALENDAR_KEYWORD = 'calendar_keyword';
     public const KEY_ROOM_NAME_PREFIX = 'room_name_prefix';
+    public const KEY_MEETING_SKIP_PREJOIN = 'meeting_skip_prejoin';
+    public const KEY_MEETING_DISABLE_DEEP_LINKING = 'meeting_disable_deep_linking';
     
     public const BOOL_TRUE = '1';
     public const BOOL_FALSE = '0';
@@ -186,13 +188,37 @@ class Config {
     
     public function updateCalendarKeyword(string $keyword): void {
         $this->config->setAppValue(
-            Application::APP_ID, 
-            self::KEY_CALENDAR_KEYWORD, 
+            Application::APP_ID,
+            self::KEY_CALENDAR_KEYWORD,
             $keyword
         );
     }
-    
-    
+
+    public function isMeetingSkipPrejoinEnabled(): bool {
+        return $this->readBool(self::KEY_MEETING_SKIP_PREJOIN, false);
+    }
+
+    public function updateMeetingSkipPrejoinEnabled(bool $enabled): void {
+        $this->config->setAppValue(
+            Application::APP_ID,
+            self::KEY_MEETING_SKIP_PREJOIN,
+            $enabled ? self::BOOL_TRUE : self::BOOL_FALSE
+        );
+    }
+
+    public function isMeetingDisableDeepLinkingEnabled(): bool {
+        return $this->readBool(self::KEY_MEETING_DISABLE_DEEP_LINKING, false);
+    }
+
+    public function updateMeetingDisableDeepLinkingEnabled(bool $enabled): void {
+        $this->config->setAppValue(
+            Application::APP_ID,
+            self::KEY_MEETING_DISABLE_DEEP_LINKING,
+            $enabled ? self::BOOL_TRUE : self::BOOL_FALSE
+        );
+    }
+
+
     private function readBool(string $key, ?bool $default = null): ?bool {
         $value = $this->config->getAppValue(
             Application::APP_ID,

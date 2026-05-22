@@ -47,6 +47,20 @@
 								type="checkbox">
 							{{ t("fairmeeting", "All participants start with video muted") }}
 						</label>
+						<label class="room__option">
+							<input
+								v-model="skipPrejoinForRoom"
+								class="room__option__checkbox"
+								type="checkbox">
+							{{ t("fairmeeting", "Skip prejoin page") }}
+						</label>
+						<label class="room__option">
+							<input
+								v-model="disableDeepLinkingForRoom"
+								class="room__option__checkbox"
+								type="checkbox">
+							{{ t("fairmeeting", "Disable mobile app prompt") }}
+						</label>
 					</div>
 
 					<button
@@ -138,6 +152,20 @@
 										class="room__option__checkbox"
 										type="checkbox">
 									{{ t("fairmeeting", "All participants start with video muted") }}
+								</label>
+								<label class="room__option">
+									<input
+										v-model="skipPrejoinForRoom"
+										class="room__option__checkbox"
+										type="checkbox">
+									{{ t("fairmeeting", "Skip prejoin page") }}
+								</label>
+								<label class="room__option">
+									<input
+										v-model="disableDeepLinkingForRoom"
+										class="room__option__checkbox"
+										type="checkbox">
+									{{ t("fairmeeting", "Disable mobile app prompt") }}
 								</label>
 							</template>
 						</div>
@@ -299,6 +327,11 @@ export default {
 			// Room settings (local state)
 			localAllStartAudioMuted: false,
 			localAllStartVideoMuted: false,
+			localSkipPrejoin: false,
+			localDisableDeepLinking: false,
+			// Admin defaults for new rooms / when per-room override is null
+			adminSkipPrejoinDefault: false,
+			adminDisableDeepLinkingDefault: false,
 			savingSettings: false,
 			serverUrl: null,
 			serverHost: null,
@@ -386,6 +419,24 @@ export default {
 				this.saveSettings()
 			},
 		},
+		skipPrejoinForRoom: {
+			get() {
+				return this.localSkipPrejoin
+			},
+			set(value) {
+				this.localSkipPrejoin = value
+				this.saveSettings()
+			},
+		},
+		disableDeepLinkingForRoom: {
+			get() {
+				return this.localDisableDeepLinking
+			},
+			set(value) {
+				this.localDisableDeepLinking = value
+				this.saveSettings()
+			},
+		},
 		isCreator() {
 			return this.user && this.room && this.user.uid === this.room.creatorId
 		},
@@ -432,6 +483,10 @@ export default {
 		this.serverHost = url.host
 		this.openInNewTab
 			= fairmeetingEle.dataset.openInNewTab === 'true' ? '1' : '0'
+		this.adminSkipPrejoinDefault
+			= fairmeetingEle.dataset.meetingSkipPrejoinDefault === 'true'
+		this.adminDisableDeepLinkingDefault
+			= fairmeetingEle.dataset.meetingDisableDeepLinkingDefault === 'true'
 		this.hasManualJwtToken
 			= fairmeetingEle.dataset.hasManualJwtToken === 'true'
 		this.jwtToken = this.hasManualJwtToken
@@ -523,74 +578,80 @@ export default {
 		},
 		async buildMeetingUrl() {
 			let url = `${this.serverUrl}${this.room.name}`
-			const params = new URLSearchParams()
+			// Jitsi URL spec: jwt goes into the ?query string (server-side
+			// processable). Everything else — config.*, interfaceConfig.*,
+			// userInfo.*, devices.* — must go into the #hash fragment, otherwise
+			// the Jitsi web client ignores it (this is why prejoin overrides
+			// did not take effect when passed via the query string).
+			const query = new URLSearchParams()
+			const hash = new URLSearchParams()
 
 			const token = await this.issueToken()
 			if (token !== null) {
-				params.append('jwt', token)
+				query.append('jwt', token)
 			}
 
 			if (this._startMuted) {
-				params.append('config.startWithAudioMuted', 'true')
+				hash.append('config.startWithAudioMuted', 'true')
 			}
-
 			if (this._startCameraOff) {
-				params.append('config.startWithVideoMuted', 'true')
+				hash.append('config.startWithVideoMuted', 'true')
 			}
 
-			params.append('userInfo.displayName', this.displayName)
+			hash.append('userInfo.displayName', this.displayName)
 
-			params.append('config.disableDeepLinking', 'true')
+			// Effective per-room override, falling back to admin default.
+			const effSkipPrejoin = this.room?.skipPrejoin ?? this.adminSkipPrejoinDefault
+			const effDisableDeepLinking = this.room?.disableDeepLinking ?? this.adminDisableDeepLinkingDefault
+			if (effSkipPrejoin) {
+				hash.append('config.prejoinPageEnabled', 'false')
+				hash.append('config.prejoinConfig.enabled', 'false')
+			}
+			if (effDisableDeepLinking) {
+				hash.append('config.disableDeepLinking', 'true')
+			}
 
 			if (this.displayAllSharingInvites) {
-				params.append(
-					'interfaceConfig.SHARING_FEATURES',
-					'email,url,dial-in,embed'
-				)
+				hash.append('interfaceConfig.SHARING_FEATURES', 'email,url,dial-in,embed')
 			} else if (this.displaySharingInviteLink) {
-				params.append('interfaceConfig.SHARING_FEATURES', 'email')
+				hash.append('interfaceConfig.SHARING_FEATURES', 'email')
 			} else {
-				params.append('interfaceConfig.SHARING_FEATURES', '')
+				hash.append('interfaceConfig.SHARING_FEATURES', '')
 			}
 
-			params.append(
+			hash.append(
 				'interfaceConfig.HIDE_INVITE_MORE_HEADER',
 				this.displaySharingInviteLink ? 'false' : 'true'
 			)
-			params.append('interfaceConfig.MOBILE_APP_PROMO', 'false')
+			hash.append('interfaceConfig.MOBILE_APP_PROMO', 'false')
 
 			// For new tab mode, we don't need to set these device parameters
 			if (this.openInNewTab !== '1') {
 				if (this.selectedCamera) {
-					params.append('devices.videoInput', this.selectedCamera.label)
+					hash.append('devices.videoInput', this.selectedCamera.label)
 				}
-
 				if (this.selectedMicrophone) {
-					params.append('devices.audioInput', this.selectedMicrophone.label)
+					hash.append('devices.audioInput', this.selectedMicrophone.label)
 				}
-
 				if (this.selectedSpeaker) {
-					params.append('devices.audioOutput', this.selectedSpeaker.label)
+					hash.append('devices.audioOutput', this.selectedSpeaker.label)
 				}
 			}
-
-			// Room-specific Jitsi configuration
-			console.log('[fairmeeting] Building meeting URL with room settings:', {
-				allStartAudioMuted: this.room?.allStartAudioMuted,
-				allStartVideoMuted: this.room?.allStartVideoMuted,
-			})
 
 			if (this.room && this.room.allStartAudioMuted) {
-				params.append('config.startWithAudioMuted', 'true')
+				hash.append('config.startWithAudioMuted', 'true')
 			}
-
 			if (this.room && this.room.allStartVideoMuted) {
-				params.append('config.startWithVideoMuted', 'true')
+				hash.append('config.startWithVideoMuted', 'true')
 			}
 
-			const paramsString = params.toString()
-			if (paramsString) {
-				url += `?${paramsString}`
+			const queryString = query.toString()
+			if (queryString) {
+				url += `?${queryString}`
+			}
+			const hashString = hash.toString()
+			if (hashString) {
+				url += `#${hashString}`
 			}
 
 			return url
@@ -652,13 +713,17 @@ export default {
 				options.jwt = token
 			}
 
+			// Effective per-room values, falling back to admin default.
+			const effSkipPrejoin = this.room?.skipPrejoin ?? this.adminSkipPrejoinDefault
+			const effDisableDeepLinking = this.room?.disableDeepLinking ?? this.adminDisableDeepLinkingDefault
+
 			const configOverwrite = {
 				subject: this.room.name,
 				enableClosePage: false,
-				disableDeepLinking: true,
-				prejoinPageEnabled: false,
+				disableDeepLinking: effDisableDeepLinking,
+				prejoinPageEnabled: !effSkipPrejoin,
 				prejoinConfig: {
-					enabled: false,
+					enabled: !effSkipPrejoin,
 				},
 				disableInviteFunctions: true,
 			}
@@ -785,10 +850,13 @@ export default {
 				return
 			}
 
-			// Load settings from database into local state
+			// Load settings from database into local state.
+			// For skipPrejoin/disableDeepLinking, null in DB means "use admin default".
 			console.log('[fairmeeting] Loading settings from room:', this.room)
 			this.localAllStartAudioMuted = this.room.allStartAudioMuted || false
 			this.localAllStartVideoMuted = this.room.allStartVideoMuted || false
+			this.localSkipPrejoin = this.room.skipPrejoin ?? this.adminSkipPrejoinDefault
+			this.localDisableDeepLinking = this.room.disableDeepLinking ?? this.adminDisableDeepLinkingDefault
 		},
 		async saveSettings() {
 			if (!this.room || !this.isCreator || this.savingSettings) {
@@ -802,6 +870,8 @@ export default {
 					publicId: this.room.publicId,
 					allStartAudioMuted: this.localAllStartAudioMuted,
 					allStartVideoMuted: this.localAllStartVideoMuted,
+					skipPrejoin: this.localSkipPrejoin,
+					disableDeepLinking: this.localDisableDeepLinking,
 				}
 
 				const response = await axios.put(

@@ -13,6 +13,8 @@ script(Application::APP_ID, 'room');
     data-display-join-using-the-fairmeeting-app="<?= $_['display_join_using_the_fairmeeting_app'] ? 'true' : 'false'; ?>"
     data-display-all-sharing-invites="<?= $_['display_all_sharing_invites'] ? 'true' : 'false'; ?>"
     data-open-in-new-tab="<?= $_['open_in_new_tab'] ? 'true' : 'false'; ?>"
+    data-meeting-skip-prejoin-default="<?= $_['meeting_skip_prejoin_default'] ? 'true' : 'false'; ?>"
+    data-meeting-disable-deep-linking-default="<?= $_['meeting_disable_deep_linking_default'] ? 'true' : 'false'; ?>"
     data-has-manual-jwt-token="<?= $_['has_manual_jwt_token'] ? 'true' : 'false'; ?>"
     <?php if ($_['has_manual_jwt_token'] && isset($_['jwt_token'])): ?>
     data-jwt-token="<?= htmlspecialchars($_['jwt_token']); ?>"

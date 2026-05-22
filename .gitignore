@@ -1,20 +1,28 @@
+# Build artifacts
 /node_modules
 /vendor
 /fairmeeting/vendor
 /fairmeeting/node_modules
 /translationtool.phar
-/js/*
-.DS_Store
-._*
-/signing_files/*
+
+# Release packages (the script writes here)
 /releases/*
+/signing_files/*
 fairmeeting.zip
-fairmeeting_v0.22.2.zip
+fairmeeting_v*.zip
+fairmeeting_v*.tar.gz
+fairmeeting-deploy.tar.gz
+
+# macOS metadata
+**/.DS_Store
+._*
+
+# Local-only dev/deploy scripts (host-specific paths, not for the public repo)
 docker-compose.nextcloud.yml
-fairmeeting_v0.22.3_fixed.zip
-CLAUDE.md
 start-local-instance-and-deploy.sh
-.gitignore
 deploy-production.sh
 deploy-full.sh
 deploy-to-dev.sh
+
+# Agent / local notes
+CLAUDE.md

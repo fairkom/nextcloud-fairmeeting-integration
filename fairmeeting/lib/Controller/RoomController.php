@@ -120,7 +120,9 @@ class RoomController extends AbstractController {
     public function update(
         string $publicId,
         bool $allStartAudioMuted,
-        bool $allStartVideoMuted
+        bool $allStartVideoMuted,
+        ?bool $skipPrejoin = null,
+        ?bool $disableDeepLinking = null
     ): DataResponse {
         $room = $this->roomMapper->findOneByPublicId($publicId);
 
@@ -135,6 +137,8 @@ class RoomController extends AbstractController {
 
         $room->setAllStartAudioMuted($allStartAudioMuted);
         $room->setAllStartVideoMuted($allStartVideoMuted);
+        $room->setSkipPrejoin($skipPrejoin);
+        $room->setDisableDeepLinking($disableDeepLinking);
 
         $updatedRoom = $this->roomMapper->update($room);
 

@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.22.9
+
+### Added
+- Two new meeting URL options, configurable both as admin defaults and as
+  per-room overrides:
+  - "Skip prejoin page" — joins the meeting directly, bypassing Jitsi's
+    audio/video test screen.
+  - "Disable mobile app prompt" — opens the meeting in the browser instead
+    of nagging the user to install the Jitsi mobile app.
+  Admins set defaults in the fairmeeting settings page; room creators can
+  override per room on the meeting page. Calendar-generated links use the
+  admin default (calendar invitations have no per-room context).
+
+### Fixed
+- The "open in new tab" / new-room meeting URL now puts Jitsi config
+  overrides (`config.*`, `userInfo.*`, `interfaceConfig.*`, `devices.*`)
+  into the URL hash fragment instead of the query string. Jitsi's web client
+  only honors these from the hash, which is why the prejoin/deep-linking
+  options were previously ignored when the same flags worked on calendar
+  links. The auth `jwt` parameter stays in the query string.
+
+### Changed
+- Listener now writes the calendar object back synchronously (no behavior
+  change since 0.22.8 — this is a cleanup of the rewrite).
+- Calendar listener log noise demoted: routine "checking event" / "no
+  modifications needed" lines are now `debug` level; only the actual
+  link-injection event stays at `info`.
+- Removed dead code: unused `OCP\Calendar\IManager` injection in the
+  calendar listener constructor.
+- Root-level cleanup: deleted broken/duplicate `package-lock.json`,
+  `.editorconfig`, `.eslintignore`, `.php-cs-fixer.dist.php`, and
+  `.onedev-buildspec.yml`. The real config files live inside `fairmeeting/`.
+
 ## 0.22.8
 
 ### Fixed

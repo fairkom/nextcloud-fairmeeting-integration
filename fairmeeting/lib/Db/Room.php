@@ -18,37 +18,39 @@ use OCP\AppFramework\Db\Entity;
  * @method void setAllStartAudioMuted(bool $allStartAudioMuted)
  * @method bool getAllStartVideoMuted()
  * @method void setAllStartVideoMuted(bool $allStartVideoMuted)
+ * @method ?bool getSkipPrejoin()
+ * @method void setSkipPrejoin(?bool $skipPrejoin)
+ * @method ?bool getDisableDeepLinking()
+ * @method void setDisableDeepLinking(?bool $disableDeepLinking)
  */
 class Room extends Entity implements JsonSerializable {
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	protected $name;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	protected $creatorId;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	protected $publicId;
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	protected $allStartAudioMuted = false;
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	protected $allStartVideoMuted = false;
+
+	/** @var ?bool Null means: use admin default. */
+	protected $skipPrejoin = null;
+
+	/** @var ?bool Null means: use admin default. */
+	protected $disableDeepLinking = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('allStartAudioMuted', 'boolean');
 		$this->addType('allStartVideoMuted', 'boolean');
+		$this->addType('skipPrejoin', 'boolean');
+		$this->addType('disableDeepLinking', 'boolean');
 	}
 
 	/**
@@ -62,6 +64,8 @@ class Room extends Entity implements JsonSerializable {
 			'creatorId' => $this->getCreatorId(),
 			'allStartAudioMuted' => $this->getAllStartAudioMuted(),
 			'allStartVideoMuted' => $this->getAllStartVideoMuted(),
+			'skipPrejoin' => $this->getSkipPrejoin(),
+			'disableDeepLinking' => $this->getDisableDeepLinking(),
 		];
 	}
 }

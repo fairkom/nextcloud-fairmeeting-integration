@@ -68,6 +68,8 @@ class PageController extends AbstractController {
                 'display_join_using_the_fairmeeting_app' => $this->appConfig->displayJoinUsingThefairmeetingApp(),
                 'display_all_sharing_invites' => $this->appConfig->displayAllSharingInvites(),
                 'open_in_new_tab' => $this->appConfig->openInNewTab(),
+                'meeting_skip_prejoin_default' => $this->appConfig->isMeetingSkipPrejoinEnabled(),
+                'meeting_disable_deep_linking_default' => $this->appConfig->isMeetingDisableDeepLinkingEnabled(),
                 'has_manual_jwt_token' => $hasManualJwtToken,
                 'jwt_token' => $jwtToken,
             ],

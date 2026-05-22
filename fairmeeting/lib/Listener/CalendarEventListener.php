@@ -4,13 +4,12 @@ declare(strict_types=1);
 namespace OCA\fairmeeting\Listener;
 
 use OCA\fairmeeting\Config\Config;
+use OCA\DAV\CalDAV\CalDavBackend;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
-use OCP\Calendar\IManager as ICalendarManager;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Reader;
-use OCA\DAV\CalDAV\CalDavBackend;
 
 /**
  * Handles calendar object create/update events from both the modern
@@ -20,163 +19,119 @@ use OCA\DAV\CalDAV\CalDavBackend;
 class CalendarEventListener implements IEventListener {
 	private Config $config;
 	private LoggerInterface $logger;
-	private ICalendarManager $calendarManager;
 	private CalDavBackend $calDavBackend;
 
 	public function __construct(
 		Config $config,
 		LoggerInterface $logger,
-		ICalendarManager $calendarManager,
 		CalDavBackend $calDavBackend
 	) {
 		$this->config = $config;
 		$this->logger = $logger;
-		$this->calendarManager = $calendarManager;
 		$this->calDavBackend = $calDavBackend;
 	}
 
 	public function handle(Event $event): void {
-		$this->logger->info('fairmeeting Calendar Event Listener triggered', [
-			'app' => 'fairmeeting',
-			'event_type' => get_class($event)
-		]);
-
-		if (!$this->config->isCalendarIntegrationEnabled()) {
-			$this->logger->info('fairmeeting Calendar Integration is disabled, skipping', [
-				'app' => 'fairmeeting'
-			]);
-			return;
-		}
-
-		// Accept both the OCP\Calendar\Events variant (NC32+) and the legacy
-		// OCA\DAV\Events variant (pre-NC32). Both expose getCalendarData()
-		// and getObjectData(), so we duck-type on those methods.
-		if (method_exists($event, 'getCalendarData') && method_exists($event, 'getObjectData')) {
-			$this->logger->info('Processing calendar event for fairmeeting integration', [
-				'app' => 'fairmeeting',
-				'event_type' => get_class($event)
-			]);
-			$this->scheduleCalendarEventUpdate($event);
-		}
-	}
-
-	private function scheduleCalendarEventUpdate($event): void {
-		// Process the event inline. Earlier versions deferred this to a
-		// register_shutdown_function with sleep(3), which on Apache/PHP-FPM
-		// blocked the response for 3+ seconds per save. The inline write
-		// triggers an UpdatedEvent for our own write, but shouldAddFairmeeting
-		// returns false on the second pass (URL is already in LOCATION), so
-		// there is no infinite loop.
-		$calendarData = $event->getCalendarData();
-		$objectData = $event->getObjectData();
-
-		$this->logger->debug('Processing fairmeeting calendar event inline', [
-			'app' => 'fairmeeting',
-			'calendar_uri' => $calendarData['uri'],
-			'object_uri' => $objectData['uri']
-		]);
-
-		$this->processStoredCalendarEvent([
-			'calendar_data' => $calendarData,
-			'object_data' => $objectData,
-			'calendar_object' => $objectData['calendardata'],
-		]);
-	}
-
-	private function processStoredCalendarEvent(array $eventData): void {
 		try {
-			$calendarData = $eventData['calendar_data'];
-			$objectData = $eventData['object_data'];
-
-			$this->logger->info('fairmeeting processing stored calendar event data', [
-				'app' => 'fairmeeting',
-				'calendar_uri' => $calendarData['uri'] ?? 'unknown',
-				'object_uri' => $objectData['uri'] ?? 'unknown'
-			]);
-
-			// Parse the calendar object
-			$vCalendar = Reader::read($eventData['calendar_object']);
-			
-			if (!$vCalendar instanceof VCalendar) {
+			if (!$this->config->isCalendarIntegrationEnabled()) {
 				return;
 			}
 
-			$modified = false;
-			
-			// Process all VEVENT components
-			foreach ($vCalendar->getComponents('VEVENT') as $vEvent) {
-				$shouldAdd = $this->shouldAddFairmeeting($vEvent);
-				$this->logger->info('Checking if fairmeeting should be added to event', [
-					'app' => 'fairmeeting',
-					'should_add' => $shouldAdd,
-					'event_summary' => isset($vEvent->SUMMARY) ? (string)$vEvent->SUMMARY : 'No summary'
-				]);
-				
-				if ($shouldAdd) {
-					$this->addFairmeetingToEvent($vEvent, $calendarData['principaluri']);
-					$modified = true;
-				}
+			// Accept both the OCP\Calendar\Events variant (NC32+) and the legacy
+			// OCA\DAV\Events variant (pre-NC32). Both expose getCalendarData()
+			// and getObjectData(), so we duck-type on those methods.
+			if (!method_exists($event, 'getCalendarData') || !method_exists($event, 'getObjectData')) {
+				return;
 			}
 
-			// Save the modified calendar object back if we made changes
-			if ($modified) {
-				$this->logger->info('Attempting to save modified calendar object', [
-					'app' => 'fairmeeting',
-					'modified' => true
-				]);
-				$this->saveModifiedStoredCalendarObject($eventData, $vCalendar->serialize());
-			} else {
-				$this->logger->info('No modifications needed for calendar object', [
-					'app' => 'fairmeeting',
-					'modified' => false
-				]);
-			}
-
-		} catch (\Exception $e) {
-			$this->logger->error('Error processing calendar event for fairmeeting integration: ' . $e->getMessage(), [
+			$this->processCalendarEventUpdate($event);
+		} catch (\Throwable $e) {
+			$this->logger->error('Unhandled error in fairmeeting calendar listener: ' . $e->getMessage(), [
 				'app' => 'fairmeeting',
-				'exception' => $e
+				'exception' => $e,
 			]);
 		}
 	}
 
+	/**
+	 * Process the calendar event inline. Earlier versions deferred this to a
+	 * register_shutdown_function with sleep(3), which on Apache/PHP-FPM blocked
+	 * the response for 3+ seconds per save. The inline write triggers an
+	 * UpdatedEvent for our own write, but shouldAddFairmeeting() returns false
+	 * on the second pass (URL is already in LOCATION), so there is no loop.
+	 */
+	private function processCalendarEventUpdate($event): void {
+		$calendarData = $event->getCalendarData();
+		$objectData = $event->getObjectData();
+
+		$this->logger->debug('fairmeeting processing calendar event', [
+			'app' => 'fairmeeting',
+			'event_type' => get_class($event),
+			'calendar_uri' => $calendarData['uri'] ?? 'unknown',
+			'object_uri' => $objectData['uri'] ?? 'unknown',
+		]);
+
+		$vCalendar = Reader::read($objectData['calendardata']);
+		if (!$vCalendar instanceof VCalendar) {
+			return;
+		}
+
+		$modified = false;
+		foreach ($vCalendar->getComponents('VEVENT') as $vEvent) {
+			if ($this->shouldAddFairmeeting($vEvent)) {
+				$this->addFairmeetingToEvent($vEvent);
+				$modified = true;
+			}
+		}
+
+		if (!$modified) {
+			return;
+		}
+
+		$this->calDavBackend->updateCalendarObject(
+			$calendarData['id'],
+			$objectData['uri'],
+			$vCalendar->serialize()
+		);
+
+		$this->logger->info('fairmeeting link added to calendar event', [
+			'app' => 'fairmeeting',
+			'calendar_id' => $calendarData['id'],
+			'object_uri' => $objectData['uri'],
+		]);
+	}
+
 	private function shouldAddFairmeeting($vEvent): bool {
-		// Check if event already has a fairmeeting link
-		if (isset($vEvent->LOCATION)) {
-			$location = (string)$vEvent->LOCATION;
-			if (strpos($location, 'fairmeeting.net') !== false || strpos($location, $this->config->fairmeetingServerUrl()) !== false) {
-				return false;
+		// Skip if event already contains a fairmeeting link in LOCATION or DESCRIPTION.
+		$serverUrl = $this->config->fairmeetingServerUrl();
+		foreach (['LOCATION', 'DESCRIPTION'] as $field) {
+			if (isset($vEvent->$field)) {
+				$value = (string)$vEvent->$field;
+				if (strpos($value, 'fairmeeting.net') !== false || strpos($value, $serverUrl) !== false) {
+					return false;
+				}
 			}
 		}
 
-		// Check if event already has a fairmeeting URL in description
-		if (isset($vEvent->DESCRIPTION)) {
-			$description = (string)$vEvent->DESCRIPTION;
-			if (strpos($description, 'fairmeeting.net') !== false || strpos($description, $this->config->fairmeetingServerUrl()) !== false) {
-				return false;
-			}
-		}
-
-		// If keyword mode is enabled, check for keyword in location, title, or description
+		// Keyword mode: only trigger on explicit keyword in LOCATION/DESCRIPTION.
 		if ($this->config->isCalendarUseKeywordEnabled()) {
-			$keyword = $this->config->getCalendarKeyword();
-			return $this->eventContainsKeyword($vEvent, $keyword);
+			return $this->eventContainsKeyword($vEvent, $this->config->getCalendarKeyword());
 		}
 
-		// Default behavior: Only add to events that are meetings (have attendees or are longer than configured minimum) AND only if location is empty
+		// Default mode: events with attendees OR longer than minimum duration get a link,
+		// but only if LOCATION is empty (so we don't overwrite a user-set room/address).
 		$hasAttendees = isset($vEvent->ATTENDEE) && count($vEvent->ATTENDEE) > 0;
-		$minimumDuration = $this->config->getCalendarMinimumDuration(); // in minutes
-		
-		if ($hasAttendees || $this->isEventLongEnough($vEvent, $minimumDuration)) {
-			if (isset($vEvent->LOCATION)) {
-				$currentLocation = trim((string)$vEvent->LOCATION);
-				return empty($currentLocation);
-			}
+		$longEnough = $this->isEventLongEnough($vEvent, $this->config->getCalendarMinimumDuration());
 
-			return true;
+		if (!$hasAttendees && !$longEnough) {
+			return false;
 		}
 
-		return false;
+		if (isset($vEvent->LOCATION)) {
+			return trim((string)$vEvent->LOCATION) === '';
+		}
+
+		return true;
 	}
 
 	private function isEventLongEnough($vEvent, int $minimumMinutes): bool {
@@ -192,141 +147,81 @@ class CalendarEventListener implements IEventListener {
 	}
 
 	private function eventContainsKeyword($vEvent, string $keyword): bool {
-
-		if (isset($vEvent->LOCATION)) {
-			$location = (string)$vEvent->LOCATION;
-			if (stripos($location, $keyword) !== false) {
+		foreach (['LOCATION', 'DESCRIPTION'] as $field) {
+			if (isset($vEvent->$field) && stripos((string)$vEvent->$field, $keyword) !== false) {
 				return true;
 			}
 		}
-
-		if (isset($vEvent->DESCRIPTION)) {
-			$description = (string)$vEvent->DESCRIPTION;
-			if (stripos($description, $keyword) !== false) {
-				return true;
-			}
-		}
-
 		return false;
 	}
 
-	private function addFairmeetingToEvent($vEvent, string $principalUri): void {
-		// Generate a unique room name based on event
+	private function addFairmeetingToEvent($vEvent): void {
 		$eventTitle = isset($vEvent->SUMMARY) ? (string)$vEvent->SUMMARY : 'Meeting';
 		$eventUid = isset($vEvent->UID) ? (string)$vEvent->UID : uniqid();
-		
+
 		$roomName = $this->generateRoomName($eventTitle, $eventUid);
 		$fairmeetingUrl = $this->generateFairmeetingUrl($roomName);
 
-		$locationAdded = false;
-		$descriptionAdded = false;
-		
 		if ($this->config->isCalendarUseKeywordEnabled()) {
 			$keyword = $this->config->getCalendarKeyword();
-			
-			if ($this->config->isCalendarKeywordReplaceLocationEnabled()) {
-				if (isset($vEvent->LOCATION)) {
-					$currentLocation = (string)$vEvent->LOCATION;
-					if (stripos($currentLocation, $keyword) !== false) {
-						$vEvent->LOCATION = str_ireplace($keyword, $fairmeetingUrl, $currentLocation);
-						$locationAdded = true;
-					}
-				}
-			}
-			
-			if ($this->config->isCalendarKeywordReplaceDescriptionEnabled()) {
-				if (isset($vEvent->DESCRIPTION)) {
-					$currentDescription = (string)$vEvent->DESCRIPTION;
-					if (stripos($currentDescription, $keyword) !== false) {
-						$vEvent->DESCRIPTION = str_ireplace($keyword, $fairmeetingUrl, $currentDescription);
-						$descriptionAdded = true;
-					}
-				}
-			}
-		} else {
-			if (isset($vEvent->LOCATION)) {
-				$currentLocation = trim((string)$vEvent->LOCATION);
-				if (empty($currentLocation)) {
-					$vEvent->LOCATION = $fairmeetingUrl;
-					$locationAdded = true;
-				}
-			} else {
 
-				$vEvent->add('LOCATION', $fairmeetingUrl);
-				$locationAdded = true;
+			if ($this->config->isCalendarKeywordReplaceLocationEnabled() && isset($vEvent->LOCATION)) {
+				$current = (string)$vEvent->LOCATION;
+				if (stripos($current, $keyword) !== false) {
+					$vEvent->LOCATION = str_ireplace($keyword, $fairmeetingUrl, $current);
+				}
 			}
+
+			if ($this->config->isCalendarKeywordReplaceDescriptionEnabled() && isset($vEvent->DESCRIPTION)) {
+				$current = (string)$vEvent->DESCRIPTION;
+				if (stripos($current, $keyword) !== false) {
+					$vEvent->DESCRIPTION = str_ireplace($keyword, $fairmeetingUrl, $current);
+				}
+			}
+			return;
 		}
 
-		$this->logger->info('Added fairmeeting link to calendar event', [
-			'app' => 'fairmeeting',
-			'room' => $roomName,
-			'url' => $fairmeetingUrl,
-			'location_added' => $locationAdded,
-			'description_added' => $descriptionAdded,
-			'keyword_mode' => $this->config->isCalendarUseKeywordEnabled(),
-			'replace_location_enabled' => $this->config->isCalendarKeywordReplaceLocationEnabled(),
-			'replace_description_enabled' => $this->config->isCalendarKeywordReplaceDescriptionEnabled()
-		]);
+		// Default mode: fill LOCATION when empty/missing.
+		if (isset($vEvent->LOCATION)) {
+			if (trim((string)$vEvent->LOCATION) === '') {
+				$vEvent->LOCATION = $fairmeetingUrl;
+			}
+		} else {
+			$vEvent->add('LOCATION', $fairmeetingUrl);
+		}
 	}
 
 	private function generateRoomName(string $eventTitle, string $eventUid): string {
-		// Clean the event title for use in URL
 		$cleanTitle = preg_replace('/[^a-zA-Z0-9-_]/', '', str_replace(' ', '-', $eventTitle));
 		$cleanTitle = strtolower(substr($cleanTitle, 0, 30));
-		
-		// Add a short hash of the UID to ensure uniqueness
+
 		$hash = substr(md5($eventUid), 0, 8);
-		
 		$roomName = $cleanTitle . '-' . $hash;
-		
-		// Add room name prefix if configured
+
 		$prefix = $this->config->getRoomNamePrefix();
 		if (!empty($prefix)) {
 			$roomName = $prefix . $roomName;
 		}
-		
+
 		return $roomName;
 	}
 
 	private function generateFairmeetingUrl(string $roomName): string {
-		$serverUrl = rtrim($this->config->fairmeetingServerUrl(), '/');
-		return $serverUrl . '/' . $roomName;
-	}
+		$url = rtrim($this->config->fairmeetingServerUrl(), '/') . '/' . $roomName;
 
-	private function saveModifiedStoredCalendarObject(array $eventData, string $modifiedCalendarData): void {
-		// Get calendar info from stored data
-		$calendarData = $eventData['calendar_data'];
-		$objectData = $eventData['object_data'];
-
-		$this->logger->info('Starting calendar object update via CalDAV Backend (stored)', [
-			'app' => 'fairmeeting',
-			'calendar_id' => $calendarData['id'],
-			'object_uri' => $objectData['uri']
-		]);
-
-		try {
-			// Use CalDAV Backend directly - the proper low-level API
-			$result = $this->calDavBackend->updateCalendarObject(
-				$calendarData['id'],
-				$objectData['uri'],
-				$modifiedCalendarData
-			);
-			
-			$this->logger->info('Successfully updated calendar object with fairmeeting link via CalDAV Backend (stored)', [
-				'app' => 'fairmeeting',
-				'calendar_id' => $calendarData['id'],
-				'object_uri' => $objectData['uri'],
-				'result' => $result
-			]);
-			
-		} catch (\Exception $e) {
-			$this->logger->error('Failed to update calendar object via CalDAV Backend (stored): ' . $e->getMessage(), [
-				'app' => 'fairmeeting',
-				'calendar_id' => $calendarData['id'],
-				'object_uri' => $objectData['uri'],
-				'exception' => $e,
-				'exception_class' => get_class($e)
-			]);
+		$params = [];
+		if ($this->config->isMeetingSkipPrejoinEnabled()) {
+			// Pass both the legacy key (Jitsi < 7906) and the modern nested key.
+			$params[] = 'config.prejoinPageEnabled=false';
+			$params[] = 'config.prejoinConfig.enabled=false';
 		}
+		if ($this->config->isMeetingDisableDeepLinkingEnabled()) {
+			$params[] = 'config.disableDeepLinking=true';
+		}
+		if ($params) {
+			$url .= '#' . implode('&', $params);
+		}
+
+		return $url;
 	}
 }
