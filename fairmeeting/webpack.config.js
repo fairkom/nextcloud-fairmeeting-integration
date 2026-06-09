@@ -5,6 +5,7 @@ module.exports = {
 	entry: {
 		admin: "./src/admin.js",
 		index: "./src/index.js",
+		personal: "./src/personal.js",
 		room: "./src/room.js",
 	},
 	output: {

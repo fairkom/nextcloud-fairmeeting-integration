@@ -5,6 +5,80 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.23.0
+
+### Added
+- Calendar invitation links now route through a new
+  `/apps/fairmeeting/j/{room}` endpoint that resolves the per-creator
+  server URL, signs a Jitsi JWT, and 303-redirects to the meeting with
+  `userInfo.displayName` already filled in.
+- Calendar listener creates a `Room` row for each injected link; the join
+  endpoint 404s when no row matches, blocking JWTs for guessed names.
+- Calendar listener cleans up its `Room` rows when the corresponding
+  event is deleted or moved to the calendar trash. Calendar-sourced rooms
+  appear in the room list with a `Calendar` badge.
+- New **Personal settings → fairmeeting** section: every user can paste
+  their own long-lived JWT token (fetched from a Keycloak-backed token
+  service) so they appear in meetings under their own identity. Token
+  validity (`exp` claim) is decoded client-side and shown next to the
+  field. The page also shows a banner with the effective server the
+  user's meetings host on and why.
+- New admin setting *JWT Token Service URL*, surfaced as an
+  *Open token service* button in each user's Personal settings.
+- New admin settings *Pro Server URL*, *Pro Group Name* (default
+  `fairmeeting`) and *Pro Server Badge Label*. Meetings created by users
+  in that Nextcloud group route to the pro server; everyone else uses
+  the default server. The NC group typically mirrors a Keycloak group
+  via OIDC group sync. The check runs on every join, so group changes
+  take effect immediately. The configured badge label appears next to
+  the room hostname wherever the room is displayed.
+- Per-room *Skip prejoin* / *Disable mobile app prompt* settings are now
+  tri-state (`Use admin default` / `Always` / `Never`).
+- Room list now shows hostname, server badge and an activity label
+  ("last joined X ago" or "created Y ago"), backed by new `created_at`
+  and `last_joined_at` columns. Toolbar adds a live search box and a
+  sort dropdown (`Recent activity`, `Name`, `Server`).
+- Pre-join page redesigned: server banner at the top, settings grouped
+  into "Your settings" and "Room settings (creator only)" cards with
+  *Media defaults* and *Join experience* sub-sections, a prominent
+  primary Join button, a "Share this meeting" card with
+  copy-to-clipboard, and icons throughout.
+- Loading skeleton on the room list, redesigned empty state, and a
+  confirmation prompt on the delete-room action.
+- ~60 new German translations covering all the strings added in this
+  release.
+
+### Changed
+- Default room list sort is now most-recent activity.
+
+### Removed
+- The admin-wide *JWT Token* field. A single token shared by all users
+  of an instance always resulted in every user appearing in the meeting
+  with the admin's identity. The new priority order is:
+  1. The user's own personal JWT token (Personal settings).
+  2. NC HS256-signs a fresh token from the configured *JWT Secret*, with
+     the session user's display name in the `context.user.name` claim.
+  3. No token is sent — fairmeeting handles auth on its own.
+
+  **Upgrade action:** sites that previously relied on the admin's manual
+  token must do one of the following before upgrading, otherwise users
+  hit fairmeeting without a JWT and joins may fail:
+  - Configure *JWT Secret* + *JWT App ID* (NC will sign per-user tokens
+    locally, no further user action needed), or
+  - Have each user paste their personal long-lived token under
+    Personal settings → fairmeeting.
+
+  The legacy `jwt_token` app-config row is left in place during upgrade
+  but is no longer read. It can be removed with
+  `occ config:app:delete fairmeeting jwt_token`.
+
+### Fixed
+- "Join in new tab" URL builder now puts Jitsi `config.*` / `userInfo.*`
+  overrides in the `#` hash (was the `?` query, which Jitsi silently
+  ignores).
+- `this.n is not a function` TypeError on the room list (plural
+  translation helper was missing from the AppGlobal mixin).
+
 ## 0.22.9
 
 ### Added

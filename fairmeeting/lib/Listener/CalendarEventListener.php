@@ -4,31 +4,35 @@ declare(strict_types=1);
 namespace OCA\fairmeeting\Listener;
 
 use OCA\fairmeeting\Config\Config;
+use OCA\fairmeeting\Db\Room;
+use OCA\fairmeeting\Db\RoomMapper;
 use OCA\DAV\CalDAV\CalDavBackend;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Reader;
 
-/**
- * Handles calendar object create/update events from both the modern
- * OCP\Calendar\Events namespace (NC32+) and the legacy OCA\DAV\Events
- * namespace (pre-NC32).
- */
 class CalendarEventListener implements IEventListener {
 	private Config $config;
 	private LoggerInterface $logger;
 	private CalDavBackend $calDavBackend;
+	private IURLGenerator $urlGenerator;
+	private RoomMapper $roomMapper;
 
 	public function __construct(
 		Config $config,
 		LoggerInterface $logger,
-		CalDavBackend $calDavBackend
+		CalDavBackend $calDavBackend,
+		IURLGenerator $urlGenerator,
+		RoomMapper $roomMapper
 	) {
 		$this->config = $config;
 		$this->logger = $logger;
 		$this->calDavBackend = $calDavBackend;
+		$this->urlGenerator = $urlGenerator;
+		$this->roomMapper = $roomMapper;
 	}
 
 	public function handle(Event $event): void {
@@ -37,14 +41,17 @@ class CalendarEventListener implements IEventListener {
 				return;
 			}
 
-			// Accept both the OCP\Calendar\Events variant (NC32+) and the legacy
-			// OCA\DAV\Events variant (pre-NC32). Both expose getCalendarData()
-			// and getObjectData(), so we duck-type on those methods.
+			// Duck-type across NC32 (OCP\Calendar\Events\*) and pre-NC32 (OCA\DAV\Events\*).
 			if (!method_exists($event, 'getCalendarData') || !method_exists($event, 'getObjectData')) {
 				return;
 			}
 
-			$this->processCalendarEventUpdate($event);
+			$class = get_class($event);
+			if (strpos($class, 'Deleted') !== false || strpos($class, 'Trash') !== false) {
+				$this->handleCalendarObjectDeleted($event);
+			} else {
+				$this->processCalendarEventUpdate($event);
+			}
 		} catch (\Throwable $e) {
 			$this->logger->error('Unhandled error in fairmeeting calendar listener: ' . $e->getMessage(), [
 				'app' => 'fairmeeting',
@@ -53,13 +60,18 @@ class CalendarEventListener implements IEventListener {
 		}
 	}
 
-	/**
-	 * Process the calendar event inline. Earlier versions deferred this to a
-	 * register_shutdown_function with sleep(3), which on Apache/PHP-FPM blocked
-	 * the response for 3+ seconds per save. The inline write triggers an
-	 * UpdatedEvent for our own write, but shouldAddFairmeeting() returns false
-	 * on the second pass (URL is already in LOCATION), so there is no loop.
-	 */
+	private function handleCalendarObjectDeleted($event): void {
+		$objectData = $event->getObjectData();
+		if (empty($objectData['calendardata'])) {
+			return;
+		}
+		$vCalendar = Reader::read($objectData['calendardata']);
+		if (!$vCalendar instanceof VCalendar) {
+			return;
+		}
+		$this->deleteCalendarRoomForEvent($vCalendar);
+	}
+
 	private function processCalendarEventUpdate($event): void {
 		$calendarData = $event->getCalendarData();
 		$objectData = $event->getObjectData();
@@ -79,7 +91,7 @@ class CalendarEventListener implements IEventListener {
 		$modified = false;
 		foreach ($vCalendar->getComponents('VEVENT') as $vEvent) {
 			if ($this->shouldAddFairmeeting($vEvent)) {
-				$this->addFairmeetingToEvent($vEvent);
+				$this->addFairmeetingToEvent($vEvent, $calendarData['principaluri'] ?? '');
 				$modified = true;
 			}
 		}
@@ -102,24 +114,25 @@ class CalendarEventListener implements IEventListener {
 	}
 
 	private function shouldAddFairmeeting($vEvent): bool {
-		// Skip if event already contains a fairmeeting link in LOCATION or DESCRIPTION.
+		// Skip events that already have a fairmeeting link (direct Jitsi URL
+		// from pre-0.23 entries, or our NC join-redirect route).
 		$serverUrl = $this->config->fairmeetingServerUrl();
+		$ncJoinPath = '/apps/fairmeeting/j/';
 		foreach (['LOCATION', 'DESCRIPTION'] as $field) {
 			if (isset($vEvent->$field)) {
 				$value = (string)$vEvent->$field;
-				if (strpos($value, 'fairmeeting.net') !== false || strpos($value, $serverUrl) !== false) {
+				if (strpos($value, 'fairmeeting.net') !== false
+					|| strpos($value, $serverUrl) !== false
+					|| strpos($value, $ncJoinPath) !== false) {
 					return false;
 				}
 			}
 		}
 
-		// Keyword mode: only trigger on explicit keyword in LOCATION/DESCRIPTION.
 		if ($this->config->isCalendarUseKeywordEnabled()) {
 			return $this->eventContainsKeyword($vEvent, $this->config->getCalendarKeyword());
 		}
 
-		// Default mode: events with attendees OR longer than minimum duration get a link,
-		// but only if LOCATION is empty (so we don't overwrite a user-set room/address).
 		$hasAttendees = isset($vEvent->ATTENDEE) && count($vEvent->ATTENDEE) > 0;
 		$longEnough = $this->isEventLongEnough($vEvent, $this->config->getCalendarMinimumDuration());
 
@@ -127,6 +140,7 @@ class CalendarEventListener implements IEventListener {
 			return false;
 		}
 
+		// Never overwrite an existing user-set LOCATION.
 		if (isset($vEvent->LOCATION)) {
 			return trim((string)$vEvent->LOCATION) === '';
 		}
@@ -155,11 +169,15 @@ class CalendarEventListener implements IEventListener {
 		return false;
 	}
 
-	private function addFairmeetingToEvent($vEvent): void {
+	private function addFairmeetingToEvent($vEvent, string $principalUri): void {
 		$eventTitle = isset($vEvent->SUMMARY) ? (string)$vEvent->SUMMARY : 'Meeting';
 		$eventUid = isset($vEvent->UID) ? (string)$vEvent->UID : uniqid();
 
 		$roomName = $this->generateRoomName($eventTitle, $eventUid);
+
+		// /j/<publicId> requires a stored Room to mint a JWT.
+		$this->ensureRoomExists($roomName, $principalUri);
+
 		$fairmeetingUrl = $this->generateFairmeetingUrl($roomName);
 
 		if ($this->config->isCalendarUseKeywordEnabled()) {
@@ -181,13 +199,47 @@ class CalendarEventListener implements IEventListener {
 			return;
 		}
 
-		// Default mode: fill LOCATION when empty/missing.
 		if (isset($vEvent->LOCATION)) {
 			if (trim((string)$vEvent->LOCATION) === '') {
 				$vEvent->LOCATION = $fairmeetingUrl;
 			}
 		} else {
 			$vEvent->add('LOCATION', $fairmeetingUrl);
+		}
+	}
+
+	private function ensureRoomExists(string $roomName, string $principalUri): void {
+		if ($this->roomMapper->findOneByPublicId($roomName) !== null) {
+			return;
+		}
+
+		// principaluri = "principals/users/<uid>"; fall back to a sentinel for system calendars.
+		$creatorId = '_calendar';
+		if (preg_match('#^principals/users/([^/]+)$#', $principalUri, $m) === 1) {
+			$creatorId = substr($m[1], 0, 64);
+		}
+
+		$room = new Room();
+		$room->setName($roomName);
+		$room->setPublicId($roomName);
+		$room->setCreatorId($creatorId);
+		$room->setSource(Room::SOURCE_CALENDAR);
+		$room->setCreatedAt(new \DateTime());
+		$this->roomMapper->insert($room);
+	}
+
+	private function deleteCalendarRoomForEvent($vCalendar): void {
+		foreach ($vCalendar->getComponents('VEVENT') as $vEvent) {
+			$eventTitle = isset($vEvent->SUMMARY) ? (string)$vEvent->SUMMARY : 'Meeting';
+			$eventUid = isset($vEvent->UID) ? (string)$vEvent->UID : '';
+			if ($eventUid === '') {
+				continue;
+			}
+			$roomName = $this->generateRoomName($eventTitle, $eventUid);
+			$room = $this->roomMapper->findOneByPublicId($roomName);
+			if ($room !== null && $room->getSource() === Room::SOURCE_CALENDAR) {
+				$this->roomMapper->delete($room);
+			}
 		}
 	}
 
@@ -207,21 +259,9 @@ class CalendarEventListener implements IEventListener {
 	}
 
 	private function generateFairmeetingUrl(string $roomName): string {
-		$url = rtrim($this->config->fairmeetingServerUrl(), '/') . '/' . $roomName;
-
-		$params = [];
-		if ($this->config->isMeetingSkipPrejoinEnabled()) {
-			// Pass both the legacy key (Jitsi < 7906) and the modern nested key.
-			$params[] = 'config.prejoinPageEnabled=false';
-			$params[] = 'config.prejoinConfig.enabled=false';
-		}
-		if ($this->config->isMeetingDisableDeepLinkingEnabled()) {
-			$params[] = 'config.disableDeepLinking=true';
-		}
-		if ($params) {
-			$url .= '#' . implode('&', $params);
-		}
-
-		return $url;
+		// Built manually because the route table isn't loaded in CalDAV listener context
+		// — linkToRoute would swallow RouteNotFoundException and return the bare base URL.
+		return rtrim($this->urlGenerator->getAbsoluteURL('/'), '/')
+			. '/index.php/apps/fairmeeting/j/' . rawurlencode($roomName);
 	}
 }

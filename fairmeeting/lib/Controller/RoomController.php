@@ -3,9 +3,12 @@ declare(strict_types=1);
 namespace OCA\fairmeeting\Controller;
 
 use Ahc\Jwt\JWT;
+use OCA\fairmeeting\AppInfo\Application;
 use OCA\fairmeeting\Config\Config;
 use OCA\fairmeeting\Db\Room;
 use OCA\fairmeeting\Db\RoomMapper;
+use OCA\fairmeeting\Service\MeetingUrlResolver;
+use OCP\IConfig;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -23,17 +26,38 @@ class RoomController extends AbstractController {
      */
     private $userId;
 
+    private MeetingUrlResolver $urlResolver;
+    private IConfig $serverConfig;
+
     public function __construct(
         string $AppName,
         IRequest $request,
         RoomMapper $roomMapper,
         ?string $UserId,
         IUserSession $userSession,
-        Config $appConfig
+        Config $appConfig,
+        MeetingUrlResolver $urlResolver,
+        IConfig $serverConfig
     ) {
         parent::__construct($AppName, $request, $userSession, $appConfig);
         $this->roomMapper = $roomMapper;
         $this->userId = $UserId;
+        $this->urlResolver = $urlResolver;
+        $this->serverConfig = $serverConfig;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function enrichRoom(Room $room): array {
+        $data = $room->jsonSerialize();
+        $serverUrl = $this->urlResolver->resolveFor($room->getCreatorId());
+        $data['serverUrl'] = $serverUrl;
+        $proUrl = $this->appConfig->proServerUrl();
+        $data['serverBadge'] = ($proUrl !== null && rtrim($serverUrl, '/') === rtrim($proUrl, '/'))
+            ? $this->appConfig->proServerLabel()
+            : '';
+        return $data;
     }
 
     /**
@@ -52,7 +76,7 @@ class RoomController extends AbstractController {
             $rooms = $this->roomMapper->findAllByCreator($user);
         }
 
-        return new DataResponse($rooms);
+        return new DataResponse(array_map([$this, 'enrichRoom'], $rooms));
     }
 
     /**
@@ -75,11 +99,12 @@ class RoomController extends AbstractController {
 
         $room->setName($name);
         $room->setCreatorId($this->userId);
+        $room->setCreatedAt(new \DateTime());
 
         $uuid = Uuid::uuid4();
         $room->setPublicId($uuid->toString());
 
-        return new DataResponse($this->roomMapper->insert($room));
+        return new DataResponse($this->enrichRoom($this->roomMapper->insert($room)));
     }
 
     /**
@@ -111,7 +136,7 @@ class RoomController extends AbstractController {
             return new DataResponse([], Http::STATUS_NOT_FOUND);
         }
 
-        return new DataResponse($room);
+        return new DataResponse($this->enrichRoom($room));
     }
 
     /**
@@ -142,7 +167,7 @@ class RoomController extends AbstractController {
 
         $updatedRoom = $this->roomMapper->update($room);
 
-        return new DataResponse($updatedRoom);
+        return new DataResponse($this->enrichRoom($updatedRoom));
     }
 
     /**
@@ -162,13 +187,24 @@ class RoomController extends AbstractController {
             return new DataResponse([], Http::STATUS_NOT_FOUND);
         }
 
-        // Check if we have a manual JWT token configured - it takes precedence
-        if ($this->appConfig->useManualJwtToken()) {
-            return new DataResponse(
-                [
-                    'token' => $this->appConfig->jwtToken(),
-                ]
+        try {
+            $room->setLastJoinedAt(new \DateTime());
+            $this->roomMapper->update($room);
+        } catch (\Throwable $e) {
+            // best-effort — do not block token issuance on activity-tracking failure
+        }
+
+        // Priority: user's personal token > NC-signed > 404. Same as PageController::join.
+        if ($user !== null) {
+            $personal = $this->serverConfig->getUserValue(
+                $user->getUID(),
+                Application::APP_ID,
+                'jwt_token',
+                ''
             );
+            if ($personal !== '') {
+                return new DataResponse(['token' => $personal]);
+            }
         }
 
         $jwtSecret = $this->appConfig->jwtSecret();

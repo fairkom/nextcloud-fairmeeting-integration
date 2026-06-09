@@ -10,8 +10,8 @@ parameters:
         # is pre-NC32. Whichever is missing on the current scan target is fine,
         # because ::class does not autoload and the dispatcher just never fires.
         -
-            message: '#OCP\\Calendar\\Events\\CalendarObject(Created|Updated)Event#'
+            message: '#OCP\\Calendar\\Events\\CalendarObject(Created|Updated|Deleted|MovedToTrash)Event#'
             path: lib/AppInfo/Application.php
         -
-            message: '#OCA\\DAV\\Events\\CalendarObject(Created|Updated)Event#'
+            message: '#OCA\\DAV\\Events\\CalendarObject(Created|Updated|Deleted|MovedToTrash)Event#'
             path: lib/AppInfo/Application.php

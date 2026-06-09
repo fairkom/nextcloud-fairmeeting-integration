@@ -24,6 +24,10 @@ class Config {
     public const KEY_ROOM_NAME_PREFIX = 'room_name_prefix';
     public const KEY_MEETING_SKIP_PREJOIN = 'meeting_skip_prejoin';
     public const KEY_MEETING_DISABLE_DEEP_LINKING = 'meeting_disable_deep_linking';
+    public const KEY_JWT_TOKEN_SERVICE_URL = 'jwt_token_service_url';
+    public const KEY_PRO_SERVER_URL = 'pro_server_url';
+    public const KEY_PRO_GROUP_NAME = 'pro_group_name';
+    public const KEY_PRO_SERVER_LABEL = 'pro_server_label';
     
     public const BOOL_TRUE = '1';
     public const BOOL_FALSE = '0';
@@ -65,6 +69,24 @@ class Config {
     
     public function jwtToken(): ?string {
         return $this->readString(self::KEY_JWT_TOKEN);
+    }
+
+    public function jwtTokenServiceUrl(): ?string {
+        return $this->readString(self::KEY_JWT_TOKEN_SERVICE_URL);
+    }
+
+    public function proServerUrl(): ?string {
+        return $this->readString(self::KEY_PRO_SERVER_URL);
+    }
+
+    public function proGroupName(): string {
+        $name = $this->readString(self::KEY_PRO_GROUP_NAME);
+        return $name ?? 'fairmeeting';
+    }
+
+    public function proServerLabel(): string {
+        $label = $this->readString(self::KEY_PRO_SERVER_LABEL);
+        return $label ?? 'pro';
     }
     
     public function useManualJwtToken(): bool {

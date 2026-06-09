@@ -19,10 +19,14 @@ fairmeeting-deploy.tar.gz
 
 # Local-only dev/deploy scripts (host-specific paths, not for the public repo)
 docker-compose.nextcloud.yml
+docker-compose.yml
 start-local-instance-and-deploy.sh
 deploy-production.sh
 deploy-full.sh
 deploy-to-dev.sh
+dev-setup.sh
+test-integration.sh
+test-release.sh
 
 # Agent / local notes
 CLAUDE.md

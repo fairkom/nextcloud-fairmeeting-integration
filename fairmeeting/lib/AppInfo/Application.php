@@ -38,8 +38,15 @@ class Application extends App implements IBootstrap {
 		// ::class is a compile-time string and does not autoload, so listing missing classes is safe.
 		$context->registerEventListener(\OCP\Calendar\Events\CalendarObjectCreatedEvent::class, CalendarEventListener::class);
 		$context->registerEventListener(\OCP\Calendar\Events\CalendarObjectUpdatedEvent::class, CalendarEventListener::class);
+		$context->registerEventListener(\OCP\Calendar\Events\CalendarObjectDeletedEvent::class, CalendarEventListener::class);
+		// NC has a trashbin for calendar events — a UI delete first dispatches
+		// MovedToTrash, then later (on hard delete) Deleted. Listen on both
+		// so the room is cleaned up promptly while users perceive the deletion.
+		$context->registerEventListener(\OCP\Calendar\Events\CalendarObjectMovedToTrashEvent::class, CalendarEventListener::class);
 		$context->registerEventListener(\OCA\DAV\Events\CalendarObjectCreatedEvent::class, CalendarEventListener::class);
 		$context->registerEventListener(\OCA\DAV\Events\CalendarObjectUpdatedEvent::class, CalendarEventListener::class);
+		$context->registerEventListener(\OCA\DAV\Events\CalendarObjectDeletedEvent::class, CalendarEventListener::class);
+		$context->registerEventListener(\OCA\DAV\Events\CalendarObjectMovedToTrashEvent::class, CalendarEventListener::class);
 	}
 
 	public function boot(IBootContext $context): void {

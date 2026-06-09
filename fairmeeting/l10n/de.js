@@ -102,6 +102,63 @@ OC.L10N.register(
 			"Dein Browser (%1$s) ist veraltet und <br> wird nicht mehr unterstützt",
 		"It is recommended to use the latest version of one of the following browsers:":
 			"Es wird empfohlen, die neueste Version eines der folgenden Browser zu verwenden:",
+
+		"fairmeeting": "fairmeeting",
+		"Save": "Speichern",
+		"Saved": "Gespeichert",
+		"Saving…": "Speichere …",
+		"Create new room": "Neuen Raum erstellen",
+		"Create room": "Raum erstellen",
+		"e.g. Team standup": "z. B. Team-Standup",
+		"Search rooms…": "Räume suchen …",
+		"Sort by name": "Nach Name sortieren",
+		"Sort by server": "Nach Server sortieren",
+		"No rooms match \"{q}\"": "Keine Räume passen zu \"{q}\"",
+		"Delete the room \"{name}\"? This cannot be undone.":
+			"Raum \"{name}\" wirklich löschen? Das kann nicht rückgängig gemacht werden.",
+		"Conference rooms are persistent meeting spaces you can share with others. Give your first one a name to get started.":
+			"Konferenzräume sind dauerhafte Meeting-Plätze, die du mit anderen teilen kannst. Vergib einen Namen, um zu starten.",
+		"Authentication (JSON Web Token)": "Authentifizierung (JSON Web Token)",
+		"Room defaults": "Raum-Voreinstellungen",
+		"Invite & share": "Einladen & teilen",
+		"Calendar integration": "Kalender-Integration",
+		"Pro server (group-based routing)": "Pro-Server (Gruppen-basiertes Routing)",
+		"Pro Server URL (optional)": "Pro-Server-URL (optional)",
+		"Pro Group Name": "Pro-Gruppenname",
+		"Pro Server Badge Label": "Pro-Server Badge-Text",
+		"Meetings created by users in the Nextcloud group below are routed to this server. Leave empty to route all meetings to the default server.":
+			"Meetings, die von Nutzern der unten angegebenen Nextcloud-Gruppe erstellt werden, gehen auf diesen Server. Leer lassen, um alle Meetings auf den Standard-Server zu leiten.",
+		"Nextcloud group whose members host on the pro server. Typically mirrored from a Keycloak group via OIDC group sync. Check is dynamic — losing or gaining membership applies on the next join.":
+			"Nextcloud-Gruppe, deren Mitglieder auf dem Pro-Server hosten. Üblicherweise via OIDC-Sync aus einer Keycloak-Gruppe gespiegelt. Prüfung ist dynamisch — Verlust oder Beitritt zur Gruppe wirken beim nächsten Join.",
+		"Short tag shown next to the hostname in the room list when a room runs on the pro server (e.g. 'pro', 'premium', 'business'). Leave empty to hide the badge.":
+			"Kurzer Tag, der neben dem Hostnamen in der Raumliste erscheint, wenn ein Raum auf dem Pro-Server läuft (z. B. 'pro', 'premium', 'business'). Leer lassen, um das Badge auszublenden.",
+		"JWT Token Service URL (optional)": "JWT-Token-Service-URL (optional)",
+		"Endpoint where users can fetch a personal long-lived JWT. When set, an 'Open token service' button appears in each user's Personal settings → fairmeeting.":
+			"Endpoint, an dem Nutzer einen persönlichen Long-Time-JWT abholen können. Wenn gesetzt, erscheint ein 'Token-Service öffnen'-Button in den persönlichen Einstellungen → fairmeeting jedes Nutzers.",
+		"Set a personal JWT token to join meetings under your own identity.":
+			"Setze einen persönlichen JWT-Token, um Meetings unter deiner eigenen Identität zu joinen.",
+		"Your JWT Token": "Dein JWT-Token",
+		"Open token service": "Token-Service öffnen",
+		"How to get a token:": "So bekommst du einen Token:",
+		"Click \"Open token service\", sign in via Keycloak, copy the long string after \"token\":, and paste it above.":
+			"Klick auf \"Token-Service öffnen\", logge dich via Keycloak ein, kopiere den langen String hinter \"token\": und füge ihn oben ein.",
+		"Your administrator has not configured a token service yet. Without a personal token, you join meetings under your Nextcloud display name.":
+			"Dein Administrator hat noch keinen Token-Service konfiguriert. Ohne persönlichen Token joinst du Meetings mit deinem Nextcloud-Anzeigenamen.",
+		"Token valid": "Token gültig",
+		"Token loaded": "Token geladen",
+		"Token expired": "Token abgelaufen",
+		"Invalid token": "Ungültiger Token",
+		"Not a JWT — expected three dot-separated parts.":
+			"Kein JWT — erwartet wurden drei punkt-getrennte Teile.",
+		"Could not decode the payload.": "Payload konnte nicht dekodiert werden.",
+		"Failed to save personal settings":
+			"Persönliche Einstellungen konnten nicht gespeichert werden",
+		"pro": "pro",
+		"Your meetings host on:": "Deine Meetings laufen auf:",
+		"you are a member of the \"{group}\" group.":
+			"du bist Mitglied der Gruppe \"{group}\".",
+		"members of the \"{group}\" group host on the pro server.":
+			"Mitglieder der Gruppe \"{group}\" hosten auf dem Pro-Server.",
 	},
 	"nplurals=2; plural=(n != 1);"
 );

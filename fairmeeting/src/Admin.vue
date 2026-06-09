@@ -35,23 +35,92 @@
 							</div>
 						</div>
 
-						<strong class="group-label">JSON Web Token</strong>
+						<h3 class="section-heading">{{ t("fairmeeting", "Pro server (group-based routing)") }}</h3>
 
-						<div class="group jwt-option">
-							<label for="fairmeeting_jwt_token" class="label">
-								{{ t("fairmeeting", "JWT Token (optional)") }}
+						<div class="group">
+							<label for="fairmeeting_pro_server_url" class="label">
+								{{ t("fairmeeting", "Pro Server URL (optional)") }}
 							</label>
 							<div class="input-group">
 								<input
-									id="fairmeeting_jwt_token"
-									v-model="jwtToken"
+									id="fairmeeting_pro_server_url"
+									v-model="proServerUrl"
 									class="input"
-									type="text">
+									type="url"
+									placeholder="https://pro.fairmeeting.net/">
 								<div class="info-text">
 									{{
 										t(
 											"fairmeeting",
-											"Enter a pre-generated JWT token. This takes precedence over any token generated from the secret."
+											"Meetings created by users in the Nextcloud group below are routed to this server. Leave empty to route all meetings to the default server."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
+						<div class="group">
+							<label for="fairmeeting_pro_group_name" class="label">
+								{{ t("fairmeeting", "Pro Group Name") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="fairmeeting_pro_group_name"
+									v-model="proGroupName"
+									class="input"
+									type="text"
+									placeholder="fairmeeting">
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Nextcloud group whose members host on the pro server. Typically mirrored from a Keycloak group via OIDC group sync. Check is dynamic — losing or gaining membership applies on the next join."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
+						<div class="group">
+							<label for="fairmeeting_pro_server_label" class="label">
+								{{ t("fairmeeting", "Pro Server Badge Label") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="fairmeeting_pro_server_label"
+									v-model="proServerLabel"
+									class="input"
+									type="text"
+									placeholder="pro">
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Short tag shown next to the hostname in the room list when a room runs on the pro server (e.g. 'pro', 'premium', 'business'). Leave empty to hide the badge."
+										)
+									}}
+								</div>
+							</div>
+						</div>
+
+						<h3 class="section-heading">{{ t("fairmeeting", "Authentication (JSON Web Token)") }}</h3>
+
+						<div class="group jwt-option">
+							<label for="fairmeeting_jwt_token_service_url" class="label">
+								{{ t("fairmeeting", "JWT Token Service URL (optional)") }}
+							</label>
+							<div class="input-group">
+								<input
+									id="fairmeeting_jwt_token_service_url"
+									v-model="jwtTokenServiceUrl"
+									class="input"
+									type="url"
+									placeholder="https://your-jitsi-token-service.example.com/jwt">
+								<div class="info-text">
+									{{
+										t(
+											"fairmeeting",
+											"Endpoint where users can fetch a personal long-lived JWT. When set, an 'Open token service' button appears in each user's Personal settings → fairmeeting."
 										)
 									}}
 								</div>
@@ -117,7 +186,7 @@
 									type="text">
 							</div>
 						</div>
-						<strong class="group-label">Nextcloud-Settings</strong>
+						<h3 class="section-heading">{{ t("fairmeeting", "Room defaults") }}</h3>
 						<div class="group">
 							<label for="room_name_prefix" class="label">
 								{{ t("fairmeeting", "Room name prefix (optional)") }}
@@ -170,7 +239,7 @@
 							</div>
 						</div>
 
-						<strong class="group-label">Invite & Share</strong>
+						<h3 class="section-heading">{{ t("fairmeeting", "Invite & share") }}</h3>
 
 						<div class="group">
 							<label for="display_all_sharing_invites" class="label">
@@ -187,7 +256,7 @@
 							</div>
 						</div>
 
-						<strong class="group-label">Calendar Integration</strong>
+						<h3 class="section-heading">{{ t("fairmeeting", "Calendar integration") }}</h3>
 
 						<div class="group">
 							<label for="calendar_integration_enabled" class="label">
@@ -401,7 +470,10 @@ export default {
 			saving: false,
 			saved: false,
 			errorMessage: '',
-			jwtToken: '',
+			jwtTokenServiceUrl: '',
+			proServerUrl: '',
+			proGroupName: '',
+			proServerLabel: '',
 			jwtSecret: '',
 			jwtAppId: '',
 			jwtAppIdMessage: '',
@@ -431,7 +503,10 @@ export default {
 		},
 	},
 	async created() {
-		this.jwtToken = await this.loadSetting('jwt_token', '')
+		this.jwtTokenServiceUrl = await this.loadSetting('jwt_token_service_url', '')
+		this.proServerUrl = await this.loadSetting('pro_server_url', '')
+		this.proGroupName = await this.loadSetting('pro_group_name', 'fairmeeting')
+		this.proServerLabel = await this.loadSetting('pro_server_label', 'pro')
 		this.jwtSecret = await this.loadSetting('jwt_secret')
 		this.jwtAppId = await this.loadSetting('jwt_app_id')
 		this.jwtAudience = await this.loadSetting('jwt_audience')
@@ -486,6 +561,12 @@ export default {
 		this.loading = false
 	},
 	methods: {
+		openTokenService() {
+			if (!this.jwtTokenServiceUrl) {
+				return
+			}
+			window.open(this.jwtTokenServiceUrl, '_blank', 'noopener,noreferrer')
+		},
 		async submit() {
 			this.sanitise()
 			this.validate()
@@ -499,7 +580,10 @@ export default {
 
 			await Promise.all([
 				await this.updateSetting('fairmeeting_server_url', this.serverUrl),
-				await this.updateSetting('jwt_token', this.jwtToken),
+				await this.updateSetting('jwt_token_service_url', this.jwtTokenServiceUrl),
+				await this.updateSetting('pro_server_url', this.proServerUrl),
+				await this.updateSetting('pro_group_name', this.proGroupName),
+				await this.updateSetting('pro_server_label', this.proServerLabel),
 				await this.updateSetting('jwt_secret', this.jwtSecret),
 				await this.updateSetting('jwt_app_id', this.jwtAppId),
 				await this.updateSetting('jwt_audience', this.jwtAudience),
@@ -590,22 +674,11 @@ export default {
 
 			this.jwtAppIdMessage = ''
 
-			// Only validate JWT App ID if secret is provided but no token
-			if (this.jwtSecret && !this.jwtToken && !this.jwtAppId) {
+			// JWT signing requires App ID alongside the secret.
+			if (this.jwtSecret && !this.jwtAppId) {
 				this.jwtAppIdMessage = this.t(
 					'fairmeeting',
 					'Please provide the App ID'
-				)
-			}
-
-			// Basic JWT token format validation
-			if (
-				this.jwtToken
-				&& !this.jwtToken.match(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
-			) {
-				this.jwtAppIdMessage = this.t(
-					'fairmeeting',
-					'Invalid JWT token format'
 				)
 			}
 		},
@@ -660,6 +733,19 @@ export default {
 	display: block;
 	margin-bottom: 8px;
 	margin-top: 16px;
+}
+
+.section-heading {
+	font-size: 16px;
+	font-weight: 600;
+	margin: 32px 0 8px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--color-border);
+	color: var(--color-main-text);
+}
+
+.section-heading:first-of-type {
+	margin-top: 8px;
 }
 
 .label {
@@ -744,5 +830,20 @@ export default {
 	button.primary {
 		margin-left: 210px;
 	}
+}
+
+.jwt-token-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.jwt-token-row .input {
+	flex: 1;
+}
+
+.jwt-token-fetch {
+	white-space: nowrap;
+	padding: 6px 12px;
 }
 </style>

@@ -64,7 +64,7 @@ class RoomMapper extends QBMapper {
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->eq('creator_id', $userParam),
-				$qb->expr()->iLike('name', $nameParam),
+				$qb->expr()->iLike('name', $nameParam)
 			)
 			->orderBy('name', 'asc');
 

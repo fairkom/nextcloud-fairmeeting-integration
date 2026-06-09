@@ -14,6 +14,9 @@ return [
 		],
 		['name' => 'page#room', 'url' => '/rooms/{publicId}/{roomName}', 'verb' => 'GET'],
 		['name' => 'page#blank', 'url' => '/blank', 'verb' => 'GET'],
+		// Calendar-invitation join target: hops through Nextcloud so the
+		// logged-in user's display name can be appended to the Jitsi URL.
+		['name' => 'page#join', 'url' => '/j/{roomName}', 'verb' => 'GET'],
 
 		// API
 		['name' => 'room#index', 'url' => '/rooms', 'verb' => 'GET'],
@@ -35,6 +38,7 @@ return [
 			'verb' => 'POST',
 		],
 		['name' => 'user#get', 'url' => '/api/user', 'verb' => 'GET'],
+		['name' => 'personal#update_jwt_token', 'url' => '/api/personal/jwt-token', 'verb' => 'PUT'],
 
 		// assets
 		['name' => 'assets#soundsTest', 'url' => '/assets/sounds/test.wav', 'verb' => 'GET'],

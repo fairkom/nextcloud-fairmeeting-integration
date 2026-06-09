@@ -17,6 +17,14 @@
 					{{ room.name }}
 				</h1>
 
+				<div v-if="serverHostForBanner" class="server-banner" :class="serverBannerClass">
+					<div class="server-banner__label">{{ t("fairmeeting", "Hosting on") }}</div>
+					<div class="server-banner__host-row">
+						<span class="server-banner__host">{{ serverHostForBanner }}</span>
+						<span v-if="room && room.serverBadge" class="server-banner__pill">{{ room.serverBadge }}</span>
+					</div>
+				</div>
+
 				<div v-if="openInNewTab === '1'" class="room__join-browser-section">
 					<div v-if="!user" class="room__username">
 						<label class="room__username-label">
@@ -48,18 +56,20 @@
 							{{ t("fairmeeting", "All participants start with video muted") }}
 						</label>
 						<label class="room__option">
-							<input
-								v-model="skipPrejoinForRoom"
-								class="room__option__checkbox"
-								type="checkbox">
 							{{ t("fairmeeting", "Skip prejoin page") }}
+							<select v-model="skipPrejoinForRoom" class="room__option__select">
+								<option :value="null">{{ t("fairmeeting", "Use admin default") }}</option>
+								<option :value="true">{{ t("fairmeeting", "Always skip") }}</option>
+								<option :value="false">{{ t("fairmeeting", "Always show") }}</option>
+							</select>
 						</label>
 						<label class="room__option">
-							<input
-								v-model="disableDeepLinkingForRoom"
-								class="room__option__checkbox"
-								type="checkbox">
 							{{ t("fairmeeting", "Disable mobile app prompt") }}
+							<select v-model="disableDeepLinkingForRoom" class="room__option__select">
+								<option :value="null">{{ t("fairmeeting", "Use admin default") }}</option>
+								<option :value="true">{{ t("fairmeeting", "Always disable") }}</option>
+								<option :value="false">{{ t("fairmeeting", "Always allow") }}</option>
+							</select>
 						</label>
 					</div>
 
@@ -118,64 +128,87 @@
 								maxlength="20">
 						</div>
 
-						<div class="room__options">
-							<label class="room__option">
-								<input
-									v-model="startMuted"
-									class="room__option__checkbox"
-									type="checkbox">
+						<div class="settings-card">
+							<div class="settings-card__title">
+								<AccountIcon :size="16" class="settings-card__title-icon" />
+								{{ t("fairmeeting", "Your settings") }}
+							</div>
+							<label class="settings-card__option">
+								<input v-model="startMuted" type="checkbox">
 								{{ t("fairmeeting", "Start muted") }}
 							</label>
-							<label class="room__option">
-								<input
-									v-model="startCameraOff"
-									class="room__option__checkbox"
-									type="checkbox">
+							<label class="settings-card__option">
+								<input v-model="startCameraOff" type="checkbox">
 								{{ t("fairmeeting", "Start with camera off") }}
 							</label>
+						</div>
 
-							<!-- Room-specific Jitsi configuration - BEFORE join button -->
-							<template v-if="isCreator">
-								<div class="room__options-title">
-									{{ t("fairmeeting", "Room settings") }}
-								</div>
-								<label class="room__option">
-									<input
-										v-model="allStartWithAudioMuted"
-										class="room__option__checkbox"
-										type="checkbox">
-									{{ t("fairmeeting", "All participants start with audio muted") }}
-								</label>
-								<label class="room__option">
-									<input
-										v-model="allStartWithVideoMuted"
-										class="room__option__checkbox"
-										type="checkbox">
-									{{ t("fairmeeting", "All participants start with video muted") }}
-								</label>
-								<label class="room__option">
-									<input
-										v-model="skipPrejoinForRoom"
-										class="room__option__checkbox"
-										type="checkbox">
-									{{ t("fairmeeting", "Skip prejoin page") }}
-								</label>
-								<label class="room__option">
-									<input
-										v-model="disableDeepLinkingForRoom"
-										class="room__option__checkbox"
-										type="checkbox">
-									{{ t("fairmeeting", "Disable mobile app prompt") }}
-								</label>
-							</template>
+						<div v-if="isCreator" class="settings-card">
+							<div class="settings-card__title">
+								<AccountGroupIcon :size="16" class="settings-card__title-icon" />
+								{{ t("fairmeeting", "Room settings (creator only)") }}
+							</div>
+
+							<div class="settings-card__subhead">
+								<VideoIcon :size="14" class="settings-card__subhead-icon" />
+								{{ t("fairmeeting", "Media defaults") }}
+							</div>
+							<label class="settings-card__option">
+								<input v-model="allStartWithAudioMuted" type="checkbox">
+								{{ t("fairmeeting", "All participants start with audio muted") }}
+							</label>
+							<label class="settings-card__option">
+								<input v-model="allStartWithVideoMuted" type="checkbox">
+								{{ t("fairmeeting", "All participants start with video muted") }}
+							</label>
+
+							<div class="settings-card__divider" />
+
+							<div class="settings-card__subhead">
+								<TuneIcon :size="14" class="settings-card__subhead-icon" />
+								{{ t("fairmeeting", "Join experience") }}
+							</div>
+							<label class="settings-card__option settings-card__option--inline">
+								<span>{{ t("fairmeeting", "Skip prejoin page") }}</span>
+								<select v-model="skipPrejoinForRoom" class="settings-card__select">
+									<option :value="null">{{ t("fairmeeting", "Use admin default") }}</option>
+									<option :value="true">{{ t("fairmeeting", "Always skip") }}</option>
+									<option :value="false">{{ t("fairmeeting", "Always show") }}</option>
+								</select>
+							</label>
+							<label class="settings-card__option settings-card__option--inline">
+								<span>{{ t("fairmeeting", "Disable mobile app prompt") }}</span>
+								<select v-model="disableDeepLinkingForRoom" class="settings-card__select">
+									<option :value="null">{{ t("fairmeeting", "Use admin default") }}</option>
+									<option :value="true">{{ t("fairmeeting", "Always disable") }}</option>
+									<option :value="false">{{ t("fairmeeting", "Always allow") }}</option>
+								</select>
+							</label>
 						</div>
 
 						<button
-							class="primary room__join-button--browser"
+							class="primary big-join-button"
 							:disabled="!systemTestDone || !ready || error || joining"
 							@click="joinBrowser">
-							{{ t("fairmeeting", "Click here to join") }}
+							<LoginVariantIcon :size="22" />
+							{{ t("fairmeeting", "Join meeting") }}
 						</button>
+
+						<div class="share-card">
+							<div class="share-card__title">
+								<ShareVariantIcon :size="16" class="share-card__title-icon" />
+								{{ t("fairmeeting", "Share this meeting") }}
+							</div>
+							<div class="share-card__row">
+								<input class="share-card__input" :value="joinAppLink" readonly>
+								<button type="button" class="share-card__copy" @click="copyLink">
+									<CheckIcon v-if="copied && copySuccess" :size="16" />
+									<ContentCopyIcon v-else :size="16" />
+									<span v-if="copied && copySuccess">{{ t("fairmeeting", "Copied") }}</span>
+									<span v-else>{{ t("fairmeeting", "Copy link") }}</span>
+								</button>
+							</div>
+						</div>
 					</div>
 
 					<SystemTest
@@ -290,6 +323,14 @@ import SystemTest from './components/SystemTest'
 import RoomNotFound from './components/RoomNotFound'
 import ChevronUpIcon from 'vue-material-design-icons/ChevronUp.vue'
 import CloseThickIcon from 'vue-material-design-icons/CloseThick.vue'
+import AccountIcon from 'vue-material-design-icons/Account.vue'
+import AccountGroupIcon from 'vue-material-design-icons/AccountGroup.vue'
+import LoginVariantIcon from 'vue-material-design-icons/LoginVariant.vue'
+import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
+import ContentCopyIcon from 'vue-material-design-icons/ContentCopy.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import VideoIcon from 'vue-material-design-icons/Video.vue'
+import TuneIcon from 'vue-material-design-icons/Tune.vue'
 
 import 'vue-material-design-icons/styles.css'
 import '../css/styles.css'
@@ -305,6 +346,14 @@ export default {
 		Breadcrumb,
 		Breadcrumbs,
 		SystemTest,
+		AccountIcon,
+		AccountGroupIcon,
+		LoginVariantIcon,
+		ShareVariantIcon,
+		ContentCopyIcon,
+		CheckIcon,
+		VideoIcon,
+		TuneIcon,
 	},
 	data() {
 		return {
@@ -324,11 +373,12 @@ export default {
 			_startCameraOff: false,
 			// eslint-disable-next-line
 			_startMuted: false,
-			// Room settings (local state)
+			// Room settings (local state). skipPrejoin / disableDeepLinking
+			// are tri-state: null = inherit admin default, true / false = explicit override.
 			localAllStartAudioMuted: false,
 			localAllStartVideoMuted: false,
-			localSkipPrejoin: false,
-			localDisableDeepLinking: false,
+			localSkipPrejoin: null,
+			localDisableDeepLinking: null,
 			// Admin defaults for new rooms / when per-room override is null
 			adminSkipPrejoinDefault: false,
 			adminDisableDeepLinkingDefault: false,
@@ -352,6 +402,23 @@ export default {
 		}
 	},
 	computed: {
+		// Per-room serverUrl wins over the admin default. The backend resolves
+		// this per-creator (pro group → pro.fairmeeting.net, otherwise default),
+		// re-evaluated on every Room fetch. Falls back to the data-attr URL
+		// during the brief window before the Room is loaded.
+		effectiveServerUrl() {
+			return (this.room && this.room.serverUrl) || this.serverUrl
+		},
+		serverHostForBanner() {
+			try {
+				return this.effectiveServerUrl ? new URL(this.effectiveServerUrl).host : ''
+			} catch (e) {
+				return ''
+			}
+		},
+		serverBannerClass() {
+			return this.room && this.room.serverBadge ? 'server-banner--pro' : 'server-banner--default'
+		},
 		appHomeUrl() {
 			return (
 				window.location.protocol
@@ -518,7 +585,7 @@ export default {
 			return
 		}
 
-		this.joinAppLink = `${this.serverUrl}${this.room.publicId}`
+		this.joinAppLink = `${this.effectiveServerUrl}${this.room.publicId}`
 		this.joinDesktopAppLink = this.joinAppLink.replace(
 			/^http[s]*/,
 			'fairmeeting-meet'
@@ -577,7 +644,7 @@ export default {
 			window.open(this.joinAppLink, '_self')
 		},
 		async buildMeetingUrl() {
-			let url = `${this.serverUrl}${this.room.name}`
+			let url = `${this.effectiveServerUrl}${this.room.name}`
 			// Jitsi URL spec: jwt goes into the ?query string (server-side
 			// processable). Everything else — config.*, interfaceConfig.*,
 			// userInfo.*, devices.* — must go into the #hash fragment, otherwise
@@ -851,12 +918,15 @@ export default {
 			}
 
 			// Load settings from database into local state.
-			// For skipPrejoin/disableDeepLinking, null in DB means "use admin default".
+			// For skipPrejoin/disableDeepLinking, null = "inherit admin default";
+			// we keep the literal null here so the tri-state <select> in the UI
+			// can render the "Default" option, and saveSettings can echo null
+			// back to the server when the user picks it.
 			console.log('[fairmeeting] Loading settings from room:', this.room)
 			this.localAllStartAudioMuted = this.room.allStartAudioMuted || false
 			this.localAllStartVideoMuted = this.room.allStartVideoMuted || false
-			this.localSkipPrejoin = this.room.skipPrejoin ?? this.adminSkipPrejoinDefault
-			this.localDisableDeepLinking = this.room.disableDeepLinking ?? this.adminDisableDeepLinkingDefault
+			this.localSkipPrejoin = this.room.skipPrejoin ?? null
+			this.localDisableDeepLinking = this.room.disableDeepLinking ?? null
 		},
 		async saveSettings() {
 			if (!this.room || !this.isCreator || this.savingSettings) {
@@ -1107,5 +1177,132 @@ export default {
 
 .tol-ul-icons li {
 	list-style-type: disc;
+}
+
+/* --- Server banner above settings, same look as Personal settings --- */
+.server-banner {
+	position: relative;
+	padding: 14px 18px 14px 22px;
+	margin: 0 0 20px;
+	border-radius: var(--border-radius-large, 12px);
+	border-left: 6px solid;
+	background: var(--color-background-hover, #f5f5f5);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.server-banner--default { border-left-color: var(--color-text-maxcontrast); }
+.server-banner--pro { border-left-color: var(--color-success); }
+.server-banner__label {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.6px;
+	text-transform: uppercase;
+	color: var(--color-text-maxcontrast);
+	margin-bottom: 4px;
+}
+.server-banner__host-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.server-banner__host {
+	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--color-main-text);
+	line-height: 1.2;
+	word-break: break-all;
+}
+.server-banner__pill {
+	display: inline-block;
+	padding: 2px 10px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.8px;
+	color: #fff;
+	background: var(--color-success);
+	border-radius: 12px;
+	line-height: 16px;
+}
+
+/* --- Big primary join button --- */
+.big-join-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	width: 100%;
+	margin: 24px 0;
+	padding: 18px 24px;
+	font-size: 18px;
+	font-weight: 600;
+	border-radius: var(--border-radius-large, 12px);
+	min-height: 56px;
+}
+.big-join-button__icon {
+	font-size: 14px;
+}
+
+/* --- Settings card grouping --- */
+.settings-card {
+	margin: 16px 0;
+	padding: 16px 18px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius, 8px);
+	background: var(--color-main-background);
+}
+.settings-card__title {
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--color-text-maxcontrast);
+	margin-bottom: 10px;
+}
+.settings-card__option {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+}
+.settings-card__option--inline {
+	justify-content: space-between;
+}
+.settings-card__option--inline > span { flex: 1; }
+.settings-card__select {
+	flex: 0 0 auto;
+}
+
+/* --- Share card --- */
+.share-card {
+	margin: 24px 0;
+	padding: 16px 18px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius, 8px);
+	background: var(--color-main-background);
+}
+.share-card__title {
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--color-text-maxcontrast);
+	margin-bottom: 10px;
+}
+.share-card__row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+.share-card__input {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-family: 'SFMono-Regular', Consolas, monospace;
+	font-size: 13px;
+}
+.share-card__copy {
+	white-space: nowrap;
+	padding: 8px 16px;
 }
 </style>

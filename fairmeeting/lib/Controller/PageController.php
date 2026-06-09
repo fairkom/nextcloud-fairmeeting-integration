@@ -2,22 +2,39 @@
 declare(strict_types=1);
 namespace OCA\fairmeeting\Controller;
 
+use Ahc\Jwt\JWT;
+use OCA\fairmeeting\AppInfo\Application;
 use OCA\fairmeeting\Config\Config;
+use OCA\fairmeeting\Db\RoomMapper;
+use OCA\fairmeeting\Service\MeetingUrlResolver;
+use OCP\IConfig;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\FeaturePolicy;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 
 class PageController extends AbstractController {
+    private RoomMapper $roomMapper;
+    private MeetingUrlResolver $urlResolver;
+    private IConfig $serverConfig;
+
     public function __construct(
         string $AppName,
         IRequest $request,
         IUserSession $userSession,
-        Config $appConfig
+        Config $appConfig,
+        RoomMapper $roomMapper,
+        MeetingUrlResolver $urlResolver,
+        IConfig $serverConfig
     ) {
         parent::__construct($AppName, $request, $userSession, $appConfig);
+        $this->roomMapper = $roomMapper;
+        $this->urlResolver = $urlResolver;
+        $this->serverConfig = $serverConfig;
     }
 
     /**
@@ -39,6 +56,87 @@ class PageController extends AbstractController {
      */
     public function blank(): TemplateResponse {
         return new TemplateResponse('fairmeeting', 'blank');
+    }
+
+    /**
+     * Calendar invitation target. Looks up the room, signs a per-user JWT,
+     * and 303-redirects to the Jitsi room URL.
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @PublicPage
+     */
+    public function join(string $roomName): Response {
+        $safeRoomName = preg_replace('/[^a-zA-Z0-9_-]/', '', $roomName) ?? '';
+        if ($safeRoomName === '') {
+            return new Response(Http::STATUS_NOT_FOUND);
+        }
+
+        // Require a stored Room so guessed room names cannot mint a JWT.
+        $room = $this->roomMapper->findOneByPublicId($safeRoomName);
+        if ($room === null) {
+            return new Response(Http::STATUS_NOT_FOUND);
+        }
+
+        $base = rtrim($this->urlResolver->resolveFor($room->getCreatorId()), '/');
+        $url = $base . '/' . rawurlencode($room->getPublicId());
+
+        try {
+            $room->setLastJoinedAt(new \DateTime());
+            $this->roomMapper->update($room);
+        } catch (\Throwable $e) {
+            // best-effort — do not block join on activity-tracking failure
+        }
+
+        $user = $this->userSession->getUser();
+        $displayName = $user !== null ? $user->getDisplayName() : null;
+
+        // Priority: user's personal token > NC-signed with admin secret > none.
+        // No admin-wide shared token is ever sent.
+        $jwtToken = null;
+        if ($user !== null) {
+            $personal = $this->serverConfig->getUserValue(
+                $user->getUID(),
+                Application::APP_ID,
+                'jwt_token',
+                ''
+            );
+            if ($personal !== '') {
+                $jwtToken = $personal;
+            }
+        }
+        if ($jwtToken === null && $this->appConfig->jwtSecret() !== null) {
+            $jwt = new JWT($this->appConfig->jwtSecret(), 'HS256');
+            $jwtToken = $jwt->encode([
+                'context' => ['user' => ['name' => $displayName ?? 'Guest']],
+                'aud' => $this->appConfig->jwtAudience(),
+                'iss' => $this->appConfig->jwtIssuer(),
+                'sub' => '*',
+                'room' => $room->getPublicId(),
+                'exp' => time() + 12 * 60 * 60,
+            ]);
+        }
+        if ($jwtToken !== null) {
+            $url .= '?jwt=' . rawurlencode($jwtToken);
+        }
+
+        // Jitsi only applies config.* / userInfo.* overrides from the URL hash.
+        $hashParams = [];
+        if ($displayName !== null) {
+            $hashParams[] = 'userInfo.displayName=' . rawurlencode($displayName);
+        }
+        if ($this->appConfig->isMeetingSkipPrejoinEnabled()) {
+            $hashParams[] = 'config.prejoinPageEnabled=false';
+            $hashParams[] = 'config.prejoinConfig.enabled=false';
+        }
+        if ($this->appConfig->isMeetingDisableDeepLinkingEnabled()) {
+            $hashParams[] = 'config.disableDeepLinking=true';
+        }
+        if ($hashParams) {
+            $url .= '#' . implode('&', $hashParams);
+        }
+
+        return new RedirectResponse($url);
     }
 
     /**
