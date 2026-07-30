@@ -3,7 +3,10 @@
 		<form @submit.prevent="submit">
 			<fieldset :disabled="saving">
 				<SettingsSection title="fairmeeting">
-					<div v-if="loading">
+					<div v-if="errorMessage" class="error-text">
+						{{ errorMessage }}
+					</div>
+					<div v-if="loading && !errorMessage">
 						{{ t("fairmeeting", "Loading …") }}
 					</div>
 					<div v-if="!loading">
@@ -458,6 +461,37 @@
 
 <script>
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
+import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
+
+const SETTINGS_URL = '/apps/fairmeeting/api/admin/settings'
+
+// App config key -> form field. Mirrors AdminController::SETTINGS; keys
+// missing here are never sent or read.
+const FIELD_BY_KEY = {
+	fairmeeting_server_url: 'serverUrl',
+	help_link: 'helpLink',
+	jwt_secret: 'jwtSecret',
+	jwt_app_id: 'jwtAppId',
+	jwt_audience: 'jwtAudience',
+	jwt_issuer: 'jwtIssuer',
+	jwt_token_service_url: 'jwtTokenServiceUrl',
+	pro_server_url: 'proServerUrl',
+	pro_group_name: 'proGroupName',
+	pro_server_label: 'proServerLabel',
+	room_name_prefix: 'roomNamePrefix',
+	open_in_new_tab: 'openInNewTab',
+	display_join_using_the_fairmeeting_app: 'displayJoinUsingThefairmeetingApp',
+	display_all_sharing_invites: 'displayAllSharingInvites',
+	calendar_integration_enabled: 'calendarIntegrationEnabled',
+	calendar_minimum_duration: 'calendarMinimumDuration',
+	calendar_use_keyword: 'calendarUseKeyword',
+	calendar_keyword: 'calendarKeyword',
+	calendar_keyword_replace_location: 'calendarKeywordReplaceLocation',
+	calendar_keyword_replace_description: 'calendarKeywordReplaceDescription',
+	meeting_skip_prejoin: 'meetingSkipPrejoin',
+	meeting_disable_deep_linking: 'meetingDisableDeepLinking',
+}
 
 export default {
 	name: 'Admin',
@@ -503,61 +537,14 @@ export default {
 		},
 	},
 	async created() {
-		this.jwtTokenServiceUrl = await this.loadSetting('jwt_token_service_url', '')
-		this.proServerUrl = await this.loadSetting('pro_server_url', '')
-		this.proGroupName = await this.loadSetting('pro_group_name', 'fairmeeting')
-		this.proServerLabel = await this.loadSetting('pro_server_label', 'pro')
-		this.jwtSecret = await this.loadSetting('jwt_secret')
-		this.jwtAppId = await this.loadSetting('jwt_app_id')
-		this.jwtAudience = await this.loadSetting('jwt_audience')
-		this.jwtIssuer = await this.loadSetting('jwt_issuer')
-		this.serverUrl = await this.loadSetting('fairmeeting_server_url')
-		this.helpLink = await this.loadSetting('help_link')
-		this.displayJoinUsingThefairmeetingApp = await this.loadSetting(
-			'display_join_using_the_fairmeeting_app',
-			'1'
-		)
-		this.openInNewTab = await this.loadSetting('open_in_new_tab', '1')
-		this.displayAllSharingInvites = await this.loadSetting(
-			'display_all_sharing_invites',
-			'1'
-		)
-		this.calendarIntegrationEnabled = await this.loadSetting(
-			'calendar_integration_enabled',
-			'0'
-		)
-		this.calendarMinimumDuration = await this.loadSetting(
-			'calendar_minimum_duration',
-			'15'
-		)
-		this.calendarUseKeyword = await this.loadSetting(
-			'calendar_use_keyword',
-			'0'
-		)
-		this.calendarKeyword = await this.loadSetting(
-			'calendar_keyword',
-			'#fm'
-		)
-		this.calendarKeywordReplaceLocation = await this.loadSetting(
-			'calendar_keyword_replace_location',
-			'1'
-		)
-		this.calendarKeywordReplaceDescription = await this.loadSetting(
-			'calendar_keyword_replace_description',
-			'0'
-		)
-		this.meetingSkipPrejoin = await this.loadSetting(
-			'meeting_skip_prejoin',
-			'0'
-		)
-		this.meetingDisableDeepLinking = await this.loadSetting(
-			'meeting_disable_deep_linking',
-			'0'
-		)
-		this.roomNamePrefix = await this.loadSetting(
-			'room_name_prefix',
-			''
-		)
+		try {
+			const response = await axios.get(generateUrl(SETTINGS_URL))
+			this.applySettings(response.data)
+		} catch (e) {
+			this.errorMessage = this.t('fairmeeting', 'Failed to load settings')
+			console.error('Failed to load settings', e)
+			return
+		}
 		this.loading = false
 	},
 	methods: {
@@ -578,63 +565,18 @@ export default {
 			this.saving = true
 			this.saved = false
 
-			await Promise.all([
-				await this.updateSetting('fairmeeting_server_url', this.serverUrl),
-				await this.updateSetting('jwt_token_service_url', this.jwtTokenServiceUrl),
-				await this.updateSetting('pro_server_url', this.proServerUrl),
-				await this.updateSetting('pro_group_name', this.proGroupName),
-				await this.updateSetting('pro_server_label', this.proServerLabel),
-				await this.updateSetting('jwt_secret', this.jwtSecret),
-				await this.updateSetting('jwt_app_id', this.jwtAppId),
-				await this.updateSetting('jwt_audience', this.jwtAudience),
-				await this.updateSetting('jwt_issuer', this.jwtIssuer),
-				await this.updateSetting('help_link', this.helpLink),
-				await this.updateSetting(
-					'display_join_using_the_fairmeeting_app',
-					this.displayJoinUsingThefairmeetingApp
-				),
-				await this.updateSetting('open_in_new_tab', this.openInNewTab),
-				await this.updateSetting(
-					'display_all_sharing_invites',
-					this.displayAllSharingInvites
-				),
-				await this.updateSetting(
-					'calendar_integration_enabled',
-					this.calendarIntegrationEnabled
-				),
-				await this.updateSetting(
-					'calendar_minimum_duration',
-					this.calendarMinimumDuration
-				),
-				await this.updateSetting(
-					'calendar_use_keyword',
-					this.calendarUseKeyword
-				),
-				await this.updateSetting(
-					'calendar_keyword',
-					this.calendarKeyword
-				),
-				await this.updateSetting(
-					'calendar_keyword_replace_location',
-					this.calendarKeywordReplaceLocation
-				),
-				await this.updateSetting(
-					'calendar_keyword_replace_description',
-					this.calendarKeywordReplaceDescription
-				),
-				await this.updateSetting(
-					'meeting_skip_prejoin',
-					this.meetingSkipPrejoin
-				),
-				await this.updateSetting(
-					'meeting_disable_deep_linking',
-					this.meetingDisableDeepLinking
-				),
-				await this.updateSetting(
-					'room_name_prefix',
-					this.roomNamePrefix
-				),
-			])
+			try {
+				const response = await axios.put(generateUrl(SETTINGS_URL), {
+					settings: this.collectSettings(),
+				})
+				this.applySettings(response.data)
+				this.errorMessage = ''
+			} catch (e) {
+				this.errorMessage = this.t('fairmeeting', 'Failed to save settings')
+				console.error('Failed to save settings', e)
+				this.saving = false
+				return
+			}
 
 			this.saving = false
 			this.saved = true
@@ -682,38 +624,31 @@ export default {
 				)
 			}
 		},
-		async updateSetting(name, value) {
-			try {
-				await new Promise((resolve, reject) =>
-					OCP.AppConfig.setValue('fairmeeting', name, value, {
-						success: resolve,
-						error: reject,
-					})
-				)
-			} catch (e) {
-				this.error = this.t('fairmeeting', 'Failed to save settings')
-				throw e
-			}
-		},
-		async loadSetting(name, defaultValue = null) {
-			try {
-				const resDocument = await new Promise((resolve, reject) =>
-					OCP.AppConfig.getValue('fairmeeting', name, defaultValue, {
-						success: resolve,
-						error: reject,
-					})
-				)
-				if (resDocument.querySelector('status').textContent !== 'ok') {
-					this.errorMessage = this.t('fairmeeting', 'Failed to load settings')
-					console.error('Failed request', resDocument)
-					return
+		/**
+		 * Maps the app config rows returned by the settings endpoint onto the
+		 * form fields. Missing keys keep their current value.
+		 *
+		 * @param {object} settings key/value map as stored in app config
+		 */
+		applySettings(settings) {
+			Object.entries(FIELD_BY_KEY).forEach(([key, field]) => {
+				if (settings[key] !== undefined) {
+					this[field] = settings[key]
 				}
-				const dataEl = resDocument.querySelector('data')
-				return dataEl.firstElementChild.textContent
-			} catch (e) {
-				this.errorMessage = this.t('fairmeeting', 'Failed to load settings')
-				throw e
-			}
+			})
+		},
+		/**
+		 * @return {object} form fields as a key/value map for the endpoint
+		 */
+		collectSettings() {
+			return Object.fromEntries(
+				Object.entries(FIELD_BY_KEY).map(([key, field]) => [
+					key,
+					this[field] === null || this[field] === undefined
+						? ''
+						: String(this[field]),
+				])
+			)
 		},
 	},
 }

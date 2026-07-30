@@ -39,6 +39,8 @@ return [
 		],
 		['name' => 'user#get', 'url' => '/api/user', 'verb' => 'GET'],
 		['name' => 'personal#update_jwt_token', 'url' => '/api/personal/jwt-token', 'verb' => 'PUT'],
+		['name' => 'admin#index', 'url' => '/api/admin/settings', 'verb' => 'GET'],
+		['name' => 'admin#update', 'url' => '/api/admin/settings', 'verb' => 'PUT'],
 
 		// assets
 		['name' => 'assets#soundsTest', 'url' => '/assets/sounds/test.wav', 'verb' => 'GET'],

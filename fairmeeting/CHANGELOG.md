@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.23.1
+
+### Fixed
+- Admin settings page hung at "Loading …" on Nextcloud 33
+  (`TypeError: r.querySelector is not a function`). NC33 reimplemented the
+  legacy `OCP.AppConfig` JS API on top of axios: its success callback used
+  to hand over an XML document and now hands over a parsed object, so the
+  page's XML parsing blew up. The page no longer uses that API — it reads
+  and writes app config through the new admin-only endpoints
+  `GET`/`PUT /apps/fairmeeting/api/admin/settings`, which also collapses
+  the ~20 requests per page load and per save into a single one.
+- A failing settings request now shows an error instead of leaving the
+  page stuck on the loading placeholder.
+
+### Changed
+- `max-version` raised to Nextcloud 33.
+
 ## 0.23.0
 
 ### Added
