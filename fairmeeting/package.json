@@ -1,6 +1,6 @@
 {
 	"name": "@nextcloud/fairmeeting",
-	"version": "0.23.1",
+	"version": "0.23.2",
 	"description": "Nextcloud fairmetting integration",
 	"directories": {
 		"lib": "lib",
@@ -16,6 +16,7 @@
 	"license": "AGPL-3.0-or-later",
 	"dependencies": {
 		"@nextcloud/axios": "^1.4.0",
+		"@nextcloud/dialogs": "^3.1.2",
 		"@nextcloud/router": "^1.2.0",
 		"@nextcloud/vue": "^5.0.0",
 		"bowser": "^2.11.0",

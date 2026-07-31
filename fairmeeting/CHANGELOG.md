@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.23.2
+
+### Fixed
+- Error toasts on the room page and in personal settings were silently
+  swallowed on Nextcloud 34, which removed the global `OC.Notification`.
+  Both call sites now use `showError` from `@nextcloud/dialogs`, which is
+  bundled with the app; the toast styling ships with Nextcloud core on
+  every supported version.
+
+### Changed
+- `max-version` raised to Nextcloud 34.
+- `@nextcloud/dialogs` is now a direct dependency (it was already pulled
+  in transitively by `@nextcloud/vue`).
+
 ## 0.23.1
 
 ### Fixed

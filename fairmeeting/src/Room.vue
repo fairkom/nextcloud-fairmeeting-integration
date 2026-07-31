@@ -313,6 +313,7 @@
 <script>
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { showError } from '@nextcloud/dialogs'
 import Bowser from 'bowser'
 import JitsiMeetExternalAPI from './external_api'
 import ActionLink from '@nextcloud/vue/dist/Components/ActionLink'
@@ -953,14 +954,7 @@ export default {
 				this.room = response.data
 			} catch (error) {
 				console.error('Failed to save room settings:', error)
-
-				// Show error message
-				if (window.OC && window.OC.Notification) {
-					window.OC.Notification.showTemporary(
-						this.t('fairmeeting', 'Failed to save room settings'),
-						{ type: 'error' }
-					)
-				}
+				showError(this.t('fairmeeting', 'Failed to save room settings'))
 			} finally {
 				this.savingSettings = false
 			}

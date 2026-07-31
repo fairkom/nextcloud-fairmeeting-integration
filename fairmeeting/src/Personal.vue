@@ -66,6 +66,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { showError } from '@nextcloud/dialogs'
 
 export default {
 	name: 'Personal',
@@ -182,11 +183,8 @@ export default {
 				)
 				this.saved = true
 			} catch (e) {
-				if (window.OC && window.OC.Notification) {
-					window.OC.Notification.showTemporary(
-						this.t('fairmeeting', 'Failed to save personal settings')
-					)
-				}
+				console.error('Failed to save personal settings:', e)
+				showError(this.t('fairmeeting', 'Failed to save personal settings'))
 			} finally {
 				this.saving = false
 			}
